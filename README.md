@@ -1,3 +1,13 @@
+# SyntroAuth Frontend Test
+
+Frontend de ejemplo para SyntroAuth. Este proyecto usa validación de contraseña simplificada (solo no vacía).
+
+## Otros frontends
+
+Si integras SyntroAuth en otro frontend, **debes** implementar validación de complejidad en el cliente (SRP). Usa `validatePasswordStrict()` de `lib/utils/password-validation.ts` o implementa requisitos equivalentes: 8+ caracteres, mayúscula, minúscula, número y carácter especial. La contraseña no debe enviarse al backend hasta cumplir los requisitos.
+
+---
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

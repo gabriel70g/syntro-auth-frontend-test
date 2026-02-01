@@ -2,6 +2,7 @@ import type { AuthCredentials, LoginResult, RegisterData, RegisterResult } from 
 import type { ApiResponse, ApiLoginResponse } from '@/lib/types/api.types';
 import { apiAdapter } from '@/lib/adapters/api.adapter';
 import { encryptPassword } from '@/lib/utils/crypto';
+import { validatePassword } from '@/lib/utils/password-validation';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -93,11 +94,12 @@ export const authService = {
             };
         }
 
-        // Guard clause: validar longitud de contraseña
-        if (data.password.length < 8) {
+        // Guard clause: validar complejidad en cliente (SRP)
+        const passwordValidation = validatePassword(data.password);
+        if (!passwordValidation.valid) {
             return {
                 success: false,
-                error: 'La contraseña debe tener al menos 8 caracteres',
+                error: `Contraseña: ${passwordValidation.errors.join(', ')}`,
             };
         }
 
