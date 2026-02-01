@@ -5,6 +5,7 @@ import { decodeJwtPayload, formatExpiry } from '@/lib/utils/jwt';
 
 const SECURITY_FEATURES = [
     { name: 'Cifrado RSA-OAEP', desc: 'Contraseña cifrada con clave pública antes de enviar' },
+    { name: 'Validación en cliente (SRP)', desc: 'Contraseña validada antes de enviar; no vacía' },
     { name: 'Anti-replay', desc: 'Seed único por intento, consumido una sola vez' },
     { name: 'Argon2id', desc: 'Hashing de contraseñas con 64MB memoria, resistente a GPU' },
     { name: 'Rate limiting', desc: '5 intentos / 15 min por IP en login' },
@@ -49,9 +50,23 @@ export default function DashboardPage() {
                 }}>
                     ✓ Login Exitoso
                 </h1>
-                <p style={{ color: '#94a3b8', fontSize: '1.125rem', marginBottom: '2rem' }}>
+                <p style={{ color: '#94a3b8', fontSize: '1.125rem', marginBottom: '1.5rem' }}>
                     Has iniciado sesión correctamente
                 </p>
+
+                {/* Aclaración: validación simplificada a propósito */}
+                <div style={{
+                    background: 'rgba(59, 130, 246, 0.15)',
+                    border: '1px solid rgba(59, 130, 246, 0.4)',
+                    borderRadius: '12px',
+                    padding: '1rem 1.25rem',
+                    marginBottom: '1.5rem',
+                    textAlign: 'left',
+                }}>
+                    <p style={{ color: '#93c5fd', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}>
+                        <strong>Nota:</strong> Este frontend es un ejemplo. La validación de contraseña acepta cualquier valor no vacío <em>a propósito</em>, para probar la simplicidad del flujo. Los demás frontends que integren SyntroAuth deben usar validación estricta de complejidad.
+                    </p>
+                </div>
 
                 {/* Nota de seguridad con atributos del login */}
                 <div style={{
@@ -75,6 +90,9 @@ export default function DashboardPage() {
                     </h2>
                     <p style={{ color: '#cbd5e1', fontSize: '0.9rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
                         Este login utilizó los siguientes controles de seguridad. Tus credenciales nunca viajaron en texto plano.
+                    </p>
+                    <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginBottom: '1.25rem', lineHeight: 1.6, fontStyle: 'italic' }}>
+                        La seguridad de los datos es nuestro compromiso. Cada capa asume su responsabilidad (SRP): la validación se realiza en cliente antes de enviar, evitando consumir recursos de backend en lo que el frontend puede resolver de forma eficiente.
                     </p>
 
                     {claims && (

@@ -3,6 +3,7 @@
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { authService } from '@/lib/services/auth.service';
+import { validatePassword } from '@/lib/utils/password-validation';
 import type { RegisterData } from '@/lib/types/auth.types';
 import '../login/login.css';
 
@@ -35,9 +36,10 @@ export default function RegisterPage() {
             return;
         }
 
-        // Guard clause: validación de contraseña
-        if (formData.password.length < 8) {
-            setError('La contraseña debe tener al menos 8 caracteres');
+        // Guard clause: validación de complejidad en cliente (SRP)
+        const passwordValidation = validatePassword(formData.password);
+        if (!passwordValidation.valid) {
+            setError(`Contraseña: ${passwordValidation.errors.join(', ')}`);
             return;
         }
 
@@ -147,7 +149,7 @@ export default function RegisterPage() {
                                 value={formData.password}
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                 className="form-input"
-                                placeholder="Mínimo 8 caracteres"
+                                placeholder="Cualquier valor no vacío"
                                 disabled={isLoading}
                                 autoComplete="new-password"
                             />
@@ -169,6 +171,9 @@ export default function RegisterPage() {
                                 )}
                             </button>
                         </div>
+                        <p className="form-hint" style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem', lineHeight: 1.4 }}>
+                            Ejemplo simplificado: acepta cualquier valor no vacío. La validación se realiza en cliente (SRP).
+                        </p>
                     </div>
 
                     <button
