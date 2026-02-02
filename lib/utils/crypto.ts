@@ -3,7 +3,7 @@
  * Usa Web Crypto API (nativo en navegadores modernos).
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://syntroauth-production.up.railway.app';
 
 /**
  * Convierte un PEM a un ArrayBuffer consumible por Web Crypto API.

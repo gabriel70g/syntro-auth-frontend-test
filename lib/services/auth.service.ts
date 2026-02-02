@@ -4,7 +4,7 @@ import { apiAdapter } from '@/lib/adapters/api.adapter';
 import { encryptPassword } from '@/lib/utils/crypto';
 import { validatePassword } from '@/lib/utils/password-validation';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://syntroauth-production.up.railway.app';
 
 /**
  * Servicio de autenticación
