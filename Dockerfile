@@ -9,6 +9,10 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Build args (injected by Railway during build)
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Build static files (output in /app/out)
 RUN npm run build
 
