@@ -22,11 +22,13 @@ RUN rm -rf ./*
 # Copy static assets from builder stage
 COPY --from=builder /app/out .
 
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy custom nginx config template (envsubst will run on startup)
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
-# Expose port (Railway fills PORT env var, but Nginx default file listens 80 unless changed. 
-# Railway maps external port to container 80 automatically mostly, but let's be safe)
+# Set default PORT for local testing
+ENV PORT=80
+
+# Expose port (Documentation only, Nginx listens on $PORT)
 EXPOSE 80
 
 # Start Nginx
