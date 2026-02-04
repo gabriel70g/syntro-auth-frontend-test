@@ -56,12 +56,24 @@ export default function OAuthCallbackPage() {
 
             // Extraer provider del state o usar default
             const provider = params.state || 'google';
-            const redirectUri = getRedirectUri();
+            
+            // CRÍTICO: Usar el mismo redirect URI que se usó para iniciar OAuth
+            // Debe ser EXACTAMENTE el mismo o Google rechazará el intercambio
+            // Prioridad: sessionStorage (el usado para iniciar) > getRedirectUri() (fallback)
+            const savedRedirectUri = sessionStorage.getItem('oauth_redirect_uri');
+            const redirectUri = savedRedirectUri || getRedirectUri();
+            
+            // Limpiar sessionStorage después de usarlo
+            if (savedRedirectUri) {
+                sessionStorage.removeItem('oauth_redirect_uri');
+            }
             
             // Debug: verificar redirect URI (temporal para debugging)
             console.log('OAuth callback debug:', {
                 provider,
                 redirectUri,
+                savedRedirectUri,
+                calculatedRedirectUri: getRedirectUri(),
                 currentUrl: window.location.href,
                 origin: window.location.origin,
                 codeReceived: !!params.code,
