@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { authService } from '@/lib/services/auth.service';
 import { parseOAuthCallback, validateOAuthCallback, getCurrentRedirectUri } from '@/lib/utils/oauth';
 
@@ -18,17 +17,26 @@ import { parseOAuthCallback, validateOAuthCallback, getCurrentRedirectUri } from
  * - Guard Clauses: validación temprana
  * - La lógica de negocio está en authService y utils/oauth
  * 
+ * IMPORTANTE: Static Export (output: 'export')
+ * - No usa useSearchParams() porque requiere servidor
+ * - Lee query params directamente de window.location.search
+ * - Compatible con HTML estático servido por nginx
+ * 
  * Configurado para Railway por defecto.
  */
 export default function OAuthCallbackPage() {
-    const searchParams = useSearchParams();
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
     const [error, setError] = useState<string>('');
 
     useEffect(() => {
         const handleCallback = async () => {
-            // Parsear parámetros (función pura)
-            const params = parseOAuthCallback(searchParams);
+            // Guard clause: solo ejecutar en cliente
+            if (typeof window === 'undefined') return;
+
+            // Parsear query params desde URL (compatible con static export)
+            // useSearchParams() no funciona con output: 'export'
+            const urlParams = new URLSearchParams(window.location.search);
+            const params = parseOAuthCallback(urlParams);
 
             // Validar parámetros (función pura)
             const validation = validateOAuthCallback(params);
@@ -82,7 +90,9 @@ export default function OAuthCallbackPage() {
         };
 
         handleCallback();
-    }, [searchParams]);
+        // Sin dependencias: solo se ejecuta una vez al montar
+        // Los query params se leen directamente de window.location.search
+    }, []);
 
     return (
         <div style={{
