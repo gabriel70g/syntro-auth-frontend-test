@@ -191,15 +191,19 @@ export const authService = {
             // Guard clause: error de red o servidor
             if (!response.ok) {
                 // Log detallado para debugging OAuth
+                const errorDetails = 'error' in apiResponse ? apiResponse.error : null;
                 console.error('OAuth login failed:', {
                     status: response.status,
                     statusText: response.statusText,
-                    error: 'error' in apiResponse ? apiResponse.error : null,
-                    errorCode: 'error' in apiResponse ? apiResponse.error?.code : null,
+                    error: errorDetails,
+                    errorCode: errorDetails?.code,
+                    errorMessage: errorDetails?.message,
                     request: {
                         provider: request.provider,
                         redirectUri: request.redirectUri,
-                    }
+                        codeLength: request.code?.length,
+                    },
+                    fullResponse: apiResponse, // Para ver el error completo del backend
                 });
                 
                 return {
@@ -261,6 +265,19 @@ export const authService = {
 
         // Construcción de URL delegada a función pura (programación funcional)
         const redirectUri = getRedirectUri();
+        
+        // CRÍTICO: Guardar redirect URI usado para iniciar OAuth
+        // Debe ser EXACTAMENTE el mismo que se envía al backend para intercambiar el código
+        // Google rechaza el intercambio si no coincide exactamente
+        sessionStorage.setItem('oauth_redirect_uri', redirectUri);
+        
+        // Debug: log redirect URI usado para iniciar OAuth (temporal para debugging)
+        console.log('OAuth initiate:', {
+            provider,
+            redirectUri,
+            clientId: clientId.substring(0, 20) + '...', // Solo primeros caracteres por seguridad
+        });
+        
         const authUrl = buildOAuthUrl(provider, clientId, redirectUri, provider);
 
         // Side effect aislado: solo redirección
