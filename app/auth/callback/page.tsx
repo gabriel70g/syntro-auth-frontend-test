@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { authService } from '@/lib/services/auth.service';
-import { parseOAuthCallback, validateOAuthCallback, getCurrentRedirectUri } from '@/lib/utils/oauth';
+import { parseOAuthCallback, validateOAuthCallback } from '@/lib/utils/oauth';
+import { getRedirectUri } from '@/lib/constants/config';
 
 /**
  * Página de Callback OAuth - Demo/Maqueta SyntroAuth
@@ -55,7 +56,7 @@ export default function OAuthCallbackPage() {
 
             // Extraer provider del state o usar default
             const provider = params.state || 'google';
-            const redirectUri = getCurrentRedirectUri();
+            const redirectUri = getRedirectUri();
 
             try {
                 // Intercambiar código por tokens (delegado al servicio)

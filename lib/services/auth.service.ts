@@ -3,10 +3,8 @@ import type { ApiResponse, ApiLoginResponse } from '@/lib/types/api.types';
 import { apiAdapter } from '@/lib/adapters/api.adapter';
 import { encryptPassword } from '@/lib/utils/crypto';
 import { validatePassword } from '@/lib/utils/password-validation';
-import { buildOAuthUrl, getCurrentRedirectUri } from '@/lib/utils/oauth';
-
-// API URL: Railway por defecto, localhost solo como fallback
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://syntroauth-production.up.railway.app';
+import { buildOAuthUrl } from '@/lib/utils/oauth';
+import { API_URL, getDefaultHeaders, getRedirectUri } from '@/lib/constants/config';
 
 /**
  * Servicio de autenticación - Demo/Maqueta SyntroAuth
@@ -39,9 +37,7 @@ export const authService = {
 
             const response = await fetch(`${API_URL}/api/auth/login`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: getDefaultHeaders(),
                 body: JSON.stringify({
                     email: credentials.email,
                     password: encryptedPassword,
@@ -120,9 +116,7 @@ export const authService = {
             // Paso 1: Crear usuario
             const createResponse = await fetch(`${API_URL}/api/users`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: getDefaultHeaders(),
                 body: JSON.stringify({
                     email: data.email,
                     password: encryptedPassword,
@@ -176,9 +170,7 @@ export const authService = {
         try {
             const response = await fetch(`${API_URL}/api/auth/oauth/login`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: getDefaultHeaders(),
                 body: JSON.stringify({
                     provider: request.provider,
                     code: request.code,
@@ -248,7 +240,7 @@ export const authService = {
         }
 
         // Construcción de URL delegada a función pura (programación funcional)
-        const redirectUri = getCurrentRedirectUri();
+        const redirectUri = getRedirectUri();
         const authUrl = buildOAuthUrl(provider, clientId, redirectUri, provider);
 
         // Side effect aislado: solo redirección

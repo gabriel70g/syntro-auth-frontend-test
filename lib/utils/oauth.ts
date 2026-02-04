@@ -129,20 +129,11 @@ export function validateOAuthCallback(params: OAuthCallbackParams): {
 
 /**
  * Obtiene el redirect URI actual
- * Función pura: calcula basado en window.location o variable de entorno
- * Prioridad: NEXT_PUBLIC_REDIRECT_URI (Railway) > window.location.origin > localhost (solo fallback)
+ * @deprecated Usar getRedirectUri() de @/lib/constants/config en su lugar
+ * Mantenido por compatibilidad hacia atrás
  */
 export function getCurrentRedirectUri(): string {
-    // Prioridad 1: Variable de entorno (Railway/producción)
-    if (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_REDIRECT_URI) {
-        return `${process.env.NEXT_PUBLIC_REDIRECT_URI}/auth/callback`;
-    }
-
-    // Prioridad 2: window.location (cliente)
-    if (typeof window !== 'undefined') {
-        return `${window.location.origin}/auth/callback`;
-    }
-
-    // Fallback: solo para SSR/build time (no debería ejecutarse en runtime)
-    return 'http://localhost:3000/auth/callback';
+    // Re-exportar desde config para mantener compatibilidad
+    const { getRedirectUri } = require('@/lib/constants/config');
+    return getRedirectUri();
 }
