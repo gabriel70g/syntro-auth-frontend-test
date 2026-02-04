@@ -168,6 +168,14 @@ export const authService = {
         }
 
         try {
+            // Debug: log request details (temporal para debugging)
+            console.log('OAuth login request:', {
+                provider: request.provider,
+                redirectUri: request.redirectUri,
+                codeLength: request.code?.length,
+                apiUrl: API_URL,
+            });
+            
             const response = await fetch(`${API_URL}/api/auth/oauth/login`, {
                 method: 'POST',
                 headers: getDefaultHeaders(),
@@ -182,6 +190,18 @@ export const authService = {
 
             // Guard clause: error de red o servidor
             if (!response.ok) {
+                // Log detallado para debugging OAuth
+                console.error('OAuth login failed:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    error: 'error' in apiResponse ? apiResponse.error : null,
+                    errorCode: 'error' in apiResponse ? apiResponse.error?.code : null,
+                    request: {
+                        provider: request.provider,
+                        redirectUri: request.redirectUri,
+                    }
+                });
+                
                 return {
                     success: false,
                     error: apiAdapter.getErrorMessage(apiResponse),

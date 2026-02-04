@@ -57,6 +57,15 @@ export default function OAuthCallbackPage() {
             // Extraer provider del state o usar default
             const provider = params.state || 'google';
             const redirectUri = getRedirectUri();
+            
+            // Debug: verificar redirect URI (temporal para debugging)
+            console.log('OAuth callback debug:', {
+                provider,
+                redirectUri,
+                currentUrl: window.location.href,
+                origin: window.location.origin,
+                codeReceived: !!params.code,
+            });
 
             try {
                 // Intercambiar código por tokens (delegado al servicio)
