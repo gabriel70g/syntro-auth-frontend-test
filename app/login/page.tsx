@@ -1,10 +1,28 @@
+/**
+ * Página de Login - Demo/Maqueta SyntroAuth
+ * 
+ * Muestra cómo integrar:
+ * - Login con email/password (RSA-OAEP handshake)
+ * - OAuth providers (Google, Apple, etc.)
+ * 
+ * Configurado para Railway por defecto.
+ * Localhost solo como fallback si es necesario.
+ */
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import Link from 'next/link';
 import { authService } from '@/lib/services/auth.service';
 import type { AuthCredentials } from '@/lib/types/auth.types';
 import './login.css';
+
+// API URL: Railway por defecto, localhost solo como fallback
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://syntroauth-production.up.railway.app';
+
+interface OAuthProvider {
+    enabled: boolean;
+    clientId: string | null;
+}
 
 export default function LoginPage() {
     const [credentials, setCredentials] = useState<AuthCredentials>({
@@ -14,6 +32,61 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string>('');
     const [showPassword, setShowPassword] = useState(false);
+    const [oauthProviders, setOauthProviders] = useState<Record<string, OAuthProvider>>({});
+
+    /**
+     * PASO 1: Cargar configuración OAuth del backend
+     * 
+     * Esto obtiene qué proveedores están habilitados y sus Client IDs públicos.
+     * El backend decide qué está disponible según la configuración en Railway.
+     * 
+     * IMPORTANTE: El frontend NO tiene credenciales secretas.
+     * Solo obtiene el Client ID (público) del backend automáticamente.
+     * El Client Secret queda solo en el backend.
+     * 
+     * Para copiar: Este useEffect completo es lo que necesitás.
+     */
+    useEffect(() => {
+        const loadOAuthConfig = async () => {
+            try {
+                const response = await fetch(`${API_URL}/api/auth/oauth/config`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data?.providers) {
+                        setOauthProviders(data.data.providers);
+                    }
+                }
+            } catch (err) {
+                console.error('Error cargando configuración OAuth:', err);
+            }
+        };
+        loadOAuthConfig();
+    }, []);
+
+    /**
+     * PASO 2: Handler para iniciar OAuth
+     * 
+     * Cuando el usuario hace clic en "Continuar con Google", esto:
+     * 1. Verifica que Google esté habilitado
+     * 2. Obtiene el Client ID (público) del backend
+     * 3. Redirige a Google OAuth
+     * 
+     * El frontend solo redirige. El backend hace el trabajo pesado
+     * (intercambiar código por tokens usando Client Secret).
+     * 
+     * Para copiar: Esta función completa.
+     */
+    const handleOAuthLogin = (provider: string) => {
+        // Guard clause: verificar que el proveedor esté disponible
+        const providerConfig = oauthProviders[provider.toLowerCase()];
+        if (!providerConfig?.enabled || !providerConfig.clientId) {
+            setError(`OAuth con ${provider} no está disponible`);
+            return;
+        }
+        
+        // Redirigir a OAuth provider (función pura en authService)
+        authService.initiateOAuth(provider, providerConfig.clientId);
+    };
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -160,6 +233,68 @@ export default function LoginPage() {
                             'Ingresar'
                         )}
                     </button>
+
+                    {/* PASO 3: Botón OAuth - Copiar este bloque completo */}
+                    {/* 
+                     * Este bloque muestra el botón de Google OAuth solo si:
+                     * 1. Hay proveedores configurados
+                     * 2. Google está habilitado en el backend
+                     * 3. Tiene Client ID disponible
+                     * 
+                     * Para copiar: Todo este bloque desde aquí hasta el cierre del div
+                     */}
+                    {Object.keys(oauthProviders).length > 0 && (
+                        <div style={{ marginTop: '1.5rem' }}>
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                marginBottom: '1rem',
+                            }}>
+                                <div style={{ flex: 1, height: '1px', background: 'rgba(148, 163, 184, 0.2)' }} />
+                                <span style={{ color: '#94a3b8', fontSize: '0.875rem' }}>o</span>
+                                <div style={{ flex: 1, height: '1px', background: 'rgba(148, 163, 184, 0.2)' }} />
+                            </div>
+
+                            {/* Botón Google OAuth - Copiar este botón */}
+                            {oauthProviders.google?.enabled && oauthProviders.google.clientId && (
+                                <button
+                                    type="button"
+                                    onClick={() => handleOAuthLogin('google')}
+                                    disabled={isLoading}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem',
+                                        background: 'white',
+                                        color: '#1f2937',
+                                        border: '1px solid rgba(148, 163, 184, 0.2)',
+                                        borderRadius: '8px',
+                                        fontWeight: '500',
+                                        cursor: isLoading ? 'not-allowed' : 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '0.5rem',
+                                        transition: 'all 0.2s',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (!isLoading) e.currentTarget.style.background = '#f9fafb';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (!isLoading) e.currentTarget.style.background = 'white';
+                                    }}
+                                >
+                                    <svg width="18" height="18" viewBox="0 0 18 18">
+                                        <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                                        <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                                        <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.348 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
+                                        <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z"/>
+                                    </svg>
+                                    Continuar con Google
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </form>
 
                 <div className="login-footer">
