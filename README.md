@@ -27,13 +27,17 @@ Este proyecto está **preparado para Railway** por defecto. Las URLs se configur
 
 - **API Backend**: `NEXT_PUBLIC_API_URL` (default: `https://syntroauth-production.up.railway.app`)
 - **Redirect URI OAuth**: `NEXT_PUBLIC_REDIRECT_URI` (default: usa `window.location.origin`)
+- **Tenant ID**: `NEXT_PUBLIC_TENANT_ID` (default: tenant de fábrica `a0000000-0000-0000-0000-000000000001`)
 
 ### Variables de Entorno (Railway)
 
 ```bash
 NEXT_PUBLIC_API_URL=https://syntroauth-production.up.railway.app
 NEXT_PUBLIC_REDIRECT_URI=https://tu-frontend.up.railway.app
+NEXT_PUBLIC_TENANT_ID=a0000000-0000-0000-0000-000000000001
 ```
+
+**IMPORTANTE**: `NEXT_PUBLIC_TENANT_ID` es requerido para OAuth y multi-tenant. Sin este header, el backend no sabe a qué tenant asignar usuarios de OAuth.
 
 ### Desarrollo Local (solo si es necesario)
 
@@ -42,6 +46,7 @@ Si necesitás probar localmente, configura:
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:5018
 NEXT_PUBLIC_REDIRECT_URI=http://localhost:3000
+NEXT_PUBLIC_TENANT_ID=a0000000-0000-0000-0000-000000000001
 ```
 
 ## 📚 Guía de Integración Paso a Paso

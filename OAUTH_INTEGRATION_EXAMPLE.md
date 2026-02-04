@@ -300,13 +300,17 @@ OAUTH_GOOGLE_CLIENT_SECRET=GOCSPX-tu-secret
 # Frontend (tu app) - Railway
 NEXT_PUBLIC_API_URL=https://syntroauth-production.up.railway.app
 NEXT_PUBLIC_REDIRECT_URI=https://tu-frontend.up.railway.app
+NEXT_PUBLIC_TENANT_ID=a0000000-0000-0000-0000-000000000001
 ```
 
 **El frontend:**
 - ✅ Obtiene el Client ID automáticamente del backend (público, seguro)
 - ✅ Solo redirige al usuario a Google
 - ✅ Recibe el código y lo pasa al backend
+- ✅ Envía `X-Tenant-Id` header (requerido para multi-tenant)
 - ❌ **NO tiene acceso al Client Secret** (solo el backend)
+
+**IMPORTANTE**: `NEXT_PUBLIC_TENANT_ID` es requerido porque cuando un usuario viene de OAuth, el backend no sabe a qué tenant asignarlo. El frontend debe indicarlo mediante el header `X-Tenant-Id`.
 
 ---
 

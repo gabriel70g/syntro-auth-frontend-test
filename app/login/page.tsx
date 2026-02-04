@@ -14,10 +14,8 @@ import { useState, FormEvent, useEffect } from 'react';
 import Link from 'next/link';
 import { authService } from '@/lib/services/auth.service';
 import type { AuthCredentials } from '@/lib/types/auth.types';
+import { API_URL } from '@/lib/constants/config';
 import './login.css';
-
-// API URL: Railway por defecto, localhost solo como fallback
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://syntroauth-production.up.railway.app';
 
 interface OAuthProvider {
     enabled: boolean;
