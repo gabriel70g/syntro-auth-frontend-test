@@ -1,3 +1,13 @@
+/**
+ * Dashboard - Demo/Maqueta SyntroAuth
+ * 
+ * Muestra información de la sesión autenticada:
+ * - Claims del JWT (userId, email, tenant, etc.)
+ * - Controles de seguridad aplicados
+ * - Ejemplo de protección de rutas
+ * 
+ * Configurado para Railway por defecto.
+ */
 'use client';
 
 import { useEffect, useState } from 'react';

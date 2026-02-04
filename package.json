@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "echo '⚠️  Static export: use \"npm run dev\" for development or serve /out directory with nginx' && exit 1",
     "lint": "eslint"
   },
   "dependencies": {
