@@ -72,7 +72,11 @@ interface OAuthUrlParams {
 /**
  * Extrae parámetros de la URL de callback OAuth
  * Función pura: transforma URL params → objeto
- * Acepta ReadonlyURLSearchParams (Next.js) o URLSearchParams
+ * 
+ * Compatible con:
+ * - Next.js useSearchParams() (ReadonlyURLSearchParams)
+ * - Static export (URLSearchParams desde window.location.search)
+ * - Cualquier objeto con método get()
  */
 type SearchParamsLike = {
     get(name: string): string | null;
