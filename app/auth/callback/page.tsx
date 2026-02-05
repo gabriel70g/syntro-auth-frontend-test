@@ -67,17 +67,6 @@ export default function OAuthCallbackPage() {
             if (savedRedirectUri) {
                 sessionStorage.removeItem('oauth_redirect_uri');
             }
-            
-            // Debug: verificar redirect URI (temporal para debugging)
-            console.log('OAuth callback debug:', {
-                provider,
-                redirectUri,
-                savedRedirectUri,
-                calculatedRedirectUri: getRedirectUri(),
-                currentUrl: window.location.href,
-                origin: window.location.origin,
-                codeReceived: !!params.code,
-            });
 
             try {
                 // Intercambiar código por tokens (delegado al servicio)
@@ -105,7 +94,13 @@ export default function OAuthCallbackPage() {
                 // Cleanup: limpiar timer si el componente se desmonta
                 return () => clearTimeout(redirectTimer);
             } catch (err) {
-                console.error('Error en callback OAuth:', err);
+                console.error('Error en callback OAuth:', {
+                    error: err,
+                    provider: params.state || 'unknown',
+                    redirectUri,
+                    codeReceived: !!params.code,
+                    currentUrl: typeof window !== 'undefined' ? window.location.href : 'N/A',
+                });
                 setStatus('error');
                 setError('Error inesperado al procesar autenticación');
             }
