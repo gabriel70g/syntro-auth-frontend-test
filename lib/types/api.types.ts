@@ -32,9 +32,23 @@ export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse;
 /**
  * Payload que devuelve el backend en /auth/login
  */
-export interface ApiLoginResponse {
+export interface ApiLoginSuccessResponse {
     accessToken: string;
     refreshToken: string;
     accessTokenExpiresAt: string;
     tokenType: string;
+}
+
+export interface ApiMfaRequiredResponse {
+    result: 'mfa_required';
+    tempToken: string;
+    message: string;
+}
+
+export type ApiLoginResponse = ApiLoginSuccessResponse | ApiMfaRequiredResponse;
+
+export interface ApiMfaSetupResponse {
+    secret: string;
+    qrCodeUri: string;
+    manualEntryKey: string;
 }

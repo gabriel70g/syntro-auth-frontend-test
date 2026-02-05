@@ -31,6 +31,17 @@ export interface LoginResult {
     readonly success: boolean;
     readonly session?: AuthSession;
     readonly error?: string;
+    readonly mfaRequired?: boolean;
+    readonly tempToken?: string;
+    readonly message?: string;
+}
+
+export interface MfaSetupResult {
+    readonly success: boolean;
+    readonly secret?: string;
+    readonly qrCodeUri?: string;
+    readonly manualEntryKey?: string;
+    readonly error?: string;
 }
 
 export interface RegisterResult {
@@ -49,4 +60,7 @@ export interface OAuthLoginResult {
     readonly success: boolean;
     readonly session?: AuthSession;
     readonly error?: string;
+    readonly mfaRequired?: boolean;
+    readonly tempToken?: string;
+    readonly message?: string;
 }

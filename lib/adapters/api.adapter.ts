@@ -16,6 +16,18 @@ export const apiAdapter = {
             return null;
         }
 
+        // Check if it is MFA Required response, in which case it is not a valid session yet
+        if ('result' in apiResponse.data && apiResponse.data.result === 'mfa_required') {
+            return null;
+        }
+
+        // It must be ApiLoginSuccessResponse now
+        // We cast or use property check. Since we ruled out mfa_required, and union has only 2 types...
+        // safety check for accessToken
+        if (!('accessToken' in apiResponse.data)) {
+            return null;
+        }
+
         const { accessToken, refreshToken } = apiResponse.data;
 
         // Guard clause: validar tokens
