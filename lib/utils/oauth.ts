@@ -46,11 +46,11 @@ export function buildOAuthUrl(
             `scope=openid email profile&` +
             `state=${params.state}&` +
             `access_type=offline&` +
-            `prompt=consent`,
+            `prompt=select_account`,
     };
 
     const builder = urlBuilders[normalizedProvider];
-    
+
     // Guard clause: proveedor no soportado
     if (!builder) {
         throw new Error(`Proveedor OAuth no soportado: ${provider}`);
