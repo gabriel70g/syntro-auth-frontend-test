@@ -55,7 +55,20 @@ export const authService = {
             }
 
             // Adaptar respuesta a modelo de dominio
-            const session = apiAdapter.toAuthSession(apiResponse);
+            // Check for MFA Required safest way for TS
+            if (apiResponse.success) {
+                const data = apiResponse.data;
+                if ('result' in data && data.result === 'mfa_required') {
+                    return {
+                        success: true, // It is a partial success (credentials valid)
+                        mfaRequired: true,
+                        tempToken: data.tempToken,
+                        message: data.message
+                    };
+                }
+            }
+
+            const session = apiAdapter.toAuthSession(apiResponse as any);
 
             // Guard clause: sesión inválida
             if (!session) {
@@ -197,7 +210,19 @@ export const authService = {
             }
 
             // Adaptar respuesta a modelo de dominio
-            const session = apiAdapter.toAuthSession(apiResponse);
+            if (apiResponse.success) {
+                const data = apiResponse.data;
+                if ('result' in data && data.result === 'mfa_required') {
+                    return {
+                        success: true,
+                        mfaRequired: true,
+                        tempToken: data.tempToken,
+                        message: data.message
+                    };
+                }
+            }
+
+            const session = apiAdapter.toAuthSession(apiResponse as any);
 
             // Guard clause: sesión inválida
             if (!session) {
@@ -254,12 +279,12 @@ export const authService = {
 
         // Construcción de URL delegada a función pura (programación funcional)
         const redirectUri = getRedirectUri();
-        
+
         // CRÍTICO: Guardar redirect URI usado para iniciar OAuth
         // Debe ser EXACTAMENTE el mismo que se envía al backend para intercambiar el código
         // Google rechaza el intercambio si no coincide exactamente
         sessionStorage.setItem('oauth_redirect_uri', redirectUri);
-        
+
         const authUrl = buildOAuthUrl(provider, clientId, redirectUri, provider);
 
         // Side effect aislado: solo redirección

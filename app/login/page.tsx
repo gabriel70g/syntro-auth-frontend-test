@@ -11,6 +11,7 @@
 'use client';
 
 import { useState, FormEvent, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authService } from '@/lib/services/auth.service';
 import type { AuthCredentials } from '@/lib/types/auth.types';
@@ -86,6 +87,9 @@ export default function LoginPage() {
         authService.initiateOAuth(provider, providerConfig.clientId);
     };
 
+    // Use Next.js router for navigation
+    const router = useRouter();
+
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -109,6 +113,21 @@ export default function LoginPage() {
 
         try {
             const result = await authService.login(credentials);
+
+            // Handle MFA Required Case
+            if (result.success && result.mfaRequired && result.tempToken) {
+                // Store temp token for the next step
+                if (typeof window !== 'undefined') {
+                    sessionStorage.setItem('mfa_temp_token', result.tempToken);
+                }
+
+                if (result.message === 'SETUP_REQUIRED') {
+                    router.push('/mfa/setup');
+                } else {
+                    router.push('/login/2fa');
+                }
+                return;
+            }
 
             if (!result.success) {
                 setError(result.error || 'Error al iniciar sesión');

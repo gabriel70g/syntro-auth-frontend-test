@@ -56,13 +56,13 @@ export default function OAuthCallbackPage() {
 
             // Extraer provider del state o usar default
             const provider = params.state || 'google';
-            
+
             // CRÍTICO: Usar el mismo redirect URI que se usó para iniciar OAuth
             // Debe ser EXACTAMENTE el mismo o Google rechazará el intercambio
             // Prioridad: sessionStorage (el usado para iniciar) > getRedirectUri() (fallback)
             const savedRedirectUri = sessionStorage.getItem('oauth_redirect_uri');
             const redirectUri = savedRedirectUri || getRedirectUri();
-            
+
             // Limpiar sessionStorage después de usarlo
             if (savedRedirectUri) {
                 sessionStorage.removeItem('oauth_redirect_uri');
@@ -83,9 +83,24 @@ export default function OAuthCallbackPage() {
                     return;
                 }
 
+                // Check for MFA Required
+                if (result.mfaRequired && result.tempToken) {
+                    // Store temp token for the next step
+                    if (typeof window !== 'undefined') {
+                        sessionStorage.setItem('mfa_temp_token', result.tempToken);
+                    }
+
+                    if (result.message === 'SETUP_REQUIRED') {
+                        window.location.href = '/mfa/setup';
+                    } else {
+                        window.location.href = '/login/2fa';
+                    }
+                    return;
+                }
+
                 // Happy path: éxito
                 setStatus('success');
-                
+
                 // Side effect aislado: redirección después de delay
                 const redirectTimer = setTimeout(() => {
                     window.location.href = '/dashboard';
