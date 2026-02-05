@@ -78,7 +78,11 @@ export const authService = {
                 session,
             };
         } catch (error) {
-            console.error('Error en login:', error);
+            console.error('Error en login:', {
+                error,
+                email: credentials.email,
+                apiUrl: API_URL,
+            });
             return {
                 success: false,
                 error: 'Error de conexión con el servidor',
@@ -141,7 +145,11 @@ export const authService = {
 
             return loginResult;
         } catch (error) {
-            console.error('Error en registro:', error);
+            console.error('Error en registro:', {
+                error,
+                email: data.email,
+                apiUrl: API_URL,
+            });
             return {
                 success: false,
                 error: 'Error de conexión con el servidor',
@@ -168,14 +176,6 @@ export const authService = {
         }
 
         try {
-            // Debug: log request details (temporal para debugging)
-            console.log('OAuth login request:', {
-                provider: request.provider,
-                redirectUri: request.redirectUri,
-                codeLength: request.code?.length,
-                apiUrl: API_URL,
-            });
-            
             const response = await fetch(`${API_URL}/api/auth/oauth/login`, {
                 method: 'POST',
                 headers: getDefaultHeaders(),
@@ -190,22 +190,6 @@ export const authService = {
 
             // Guard clause: error de red o servidor
             if (!response.ok) {
-                // Log detallado para debugging OAuth
-                const errorDetails = 'error' in apiResponse ? apiResponse.error : null;
-                console.error('OAuth login failed:', {
-                    status: response.status,
-                    statusText: response.statusText,
-                    error: errorDetails,
-                    errorCode: errorDetails?.code,
-                    errorMessage: errorDetails?.message,
-                    request: {
-                        provider: request.provider,
-                        redirectUri: request.redirectUri,
-                        codeLength: request.code?.length,
-                    },
-                    fullResponse: apiResponse, // Para ver el error completo del backend
-                });
-                
                 return {
                     success: false,
                     error: apiAdapter.getErrorMessage(apiResponse),
@@ -236,7 +220,12 @@ export const authService = {
                 session,
             };
         } catch (error) {
-            console.error('Error en OAuth login:', error);
+            console.error('Error en OAuth login:', {
+                error,
+                provider: request.provider,
+                redirectUri: request.redirectUri,
+                apiUrl: API_URL,
+            });
             return {
                 success: false,
                 error: 'Error de conexión con el servidor',
@@ -270,13 +259,6 @@ export const authService = {
         // Debe ser EXACTAMENTE el mismo que se envía al backend para intercambiar el código
         // Google rechaza el intercambio si no coincide exactamente
         sessionStorage.setItem('oauth_redirect_uri', redirectUri);
-        
-        // Debug: log redirect URI usado para iniciar OAuth (temporal para debugging)
-        console.log('OAuth initiate:', {
-            provider,
-            redirectUri,
-            clientId: clientId.substring(0, 20) + '...', // Solo primeros caracteres por seguridad
-        });
         
         const authUrl = buildOAuthUrl(provider, clientId, redirectUri, provider);
 
