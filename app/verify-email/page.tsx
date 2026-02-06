@@ -2,10 +2,12 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
+import { API_URL } from "@/lib/constants/config";
 
 function VerifyEmailContent() {
     const searchParams = useSearchParams();
     const token = searchParams.get("token");
+    const tenantIdFromUrl = searchParams.get("tenantId");
     const router = useRouter();
 
     // Machine State: "verifying" | "verified_setup_needed" | "enabling" | "complete_recovery_codes" | "error"
@@ -30,9 +32,13 @@ function VerifyEmailContent() {
 
         const verifyEmail = async () => {
             try {
-                const response = await fetch("http://localhost:5018/api/auth/verify-email/confirm", {
+                // USA LA CONSTANTE API_URL Y ENVÍA EL TENANT_ID SI VIENE EN LA URL
+                const response = await fetch(`${API_URL}/api/auth/verify-email/confirm`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Tenant-Id": tenantIdFromUrl || ""
+                    },
                     body: JSON.stringify({ token }),
                 });
 
@@ -84,11 +90,12 @@ function VerifyEmailContent() {
 
         try {
             // Enable MFA using the token we got from verification
-            const enableRes = await fetch("http://localhost:5018/api/auth/mfa/enable", {
+            const enableRes = await fetch(`${API_URL}/api/auth/mfa/enable`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${accessToken}`
+                    "Authorization": `Bearer ${accessToken}`,
+                    "X-Tenant-Id": tenantIdFromUrl || ""
                 },
                 body: JSON.stringify({ code }) // No password needed for Demo
             });
