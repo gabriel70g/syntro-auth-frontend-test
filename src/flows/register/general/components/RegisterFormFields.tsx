@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { AuthFlowBrandMark } from '@common/components/AuthFlowBrandMark';
 import type { RegisterData } from '@common/domain/auth.domain';
 
 type Props = {
@@ -26,9 +27,7 @@ export function RegisterFormFields({
     return (
         <div className="login-card">
             <div className="login-header">
-                <div className="logo-ring">
-                    <div className="logo-inner" />
-                </div>
+                <AuthFlowBrandMark />
                 <h1 className="login-title">Crear Cuenta</h1>
                 <p className="login-subtitle">Completa tus datos para registrarte</p>
             </div>

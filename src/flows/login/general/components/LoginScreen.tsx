@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { AuthFlowBrandMark } from '@common/components/AuthFlowBrandMark';
 import { useLoginPageController } from '@flows/login/general/hooks/useLoginPageController';
 import { LoginArtBackground } from '@flows/login/general/components/LoginArtBackground';
 import { LoginCredentialForm } from '@flows/login/general/components/LoginCredentialForm';
@@ -18,9 +19,7 @@ export function LoginScreen() {
             <LoginArtBackground />
             <div className="login-card">
                 <div className="login-header">
-                    <div className="logo-ring">
-                        <div className="logo-inner" />
-                    </div>
+                    <AuthFlowBrandMark />
                     <h1 className="login-title">Bienvenido</h1>
                     <p className="login-subtitle">Ingresa tus credenciales para continuar</p>
                 </div>

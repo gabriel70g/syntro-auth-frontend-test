@@ -1,6 +1,6 @@
 'use client';
 
-import QRCode from 'react-qr-code';
+import { MfaTotpQrCode } from '@common/components/MfaTotpQrCode';
 import { useMfaForcedSetup } from '@flows/mfa-login-forced/general/hooks/useMfaForcedSetup';
 
 /**
@@ -72,7 +72,7 @@ export function MfaForcedSetupScreen() {
                                     width: 'fit-content',
                                 }}
                             >
-                                <QRCode value={c.otpAuthUri} size={200} level="M" />
+                                <MfaTotpQrCode value={c.otpAuthUri} size={200} />
                             </div>
                         ) : null}
                         <div
