@@ -6,7 +6,7 @@
  * No usar con token MFA temporal; ese flujo vive en /mfa/setup + /api/auth/mfa/*.
  */
 import { type CSSProperties } from 'react';
-import QRCode from 'react-qr-code';
+import { MfaTotpQrCode } from '@common/components/MfaTotpQrCode';
 import { useAccountMfaSettingsController } from '@flows/mfa-account-settings/general/hooks/useAccountMfaSettingsController';
 
 export function AccountMfaSettingsScreen() {
@@ -106,7 +106,7 @@ export function AccountMfaSettingsScreen() {
                                 margin: '0 auto 1rem',
                             }}
                         >
-                            <QRCode value={flow.otpAuthUri} size={200} level="M" />
+                            <MfaTotpQrCode value={flow.otpAuthUri} size={200} />
                         </div>
                         <div
                             style={{

@@ -1,5 +1,6 @@
 'use client';
 
+import { SyntropySoftLogoCompact } from '@common/components/AuthFlowBrandMark';
 import { clearAuthSessionStorage } from '@common/lib/storage/auth-session.storage';
 import { SECURITY_FEATURES } from '@flows/dashboard/general/data/security-features.data';
 import { useDashboardSession } from '@flows/dashboard/general/hooks/useDashboardSession';
@@ -24,6 +25,7 @@ export function DashboardScreen() {
             }}
         >
             <div style={{ textAlign: 'center', maxWidth: '680px', width: '100%' }}>
+                <SyntropySoftLogoCompact />
                 <h1
                     style={{
                         fontSize: '3rem',
