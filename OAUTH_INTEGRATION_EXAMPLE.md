@@ -21,10 +21,10 @@
 
 ## ⚡ Versión Ultra-Rápida (30 segundos)
 
-Si solo querés ver cómo funciona, copiá estos 3 archivos:
-1. `lib/utils/oauth.ts` → Copiar completo
-2. `app/auth/callback/page.tsx` → Copiar completo  
-3. `lib/services/auth.service.ts` → Copiar solo los métodos `initiateOAuth` y `oauthLogin`
+Si solo querés ver cómo funciona, usá como referencia estos puntos del repo:
+1. `src/common/lib/oauth.ts` → utilidades OAuth (puras)
+2. `app/auth/callback/page.tsx` + `src/flows/oauth-callback/general/` → callback
+3. `src/common/api/clients/auth.http.client.ts` (`postOAuthLogin`) + mappers en `src/common/api/mappers/` → intercambio código → sesión
 
 Y agregá el botón en tu login (ver Paso 4 abajo).
 
@@ -44,11 +44,11 @@ Y agregá el botón en tu login (ver Paso 4 abajo).
 
 ---
 
-## 📁 Archivo 1: Utilidades OAuth (`lib/utils/oauth.ts`)
+## 📁 Archivo 1: Utilidades OAuth (`src/common/lib/oauth.ts`)
 
 **✅ Copiá este archivo completo** - Funciones puras, sin dependencias complejas.
 
-**Ubicación:** `lib/utils/oauth.ts` (o donde guardes tus utilidades)
+**Ubicación en este repo:** `src/common/lib/oauth.ts` (alias `@common/lib/oauth`)
 
 **Qué hace:**
 - Construye URLs de OAuth (Google, Apple, etc.)
@@ -61,11 +61,9 @@ Y agregá el botón en tu login (ver Paso 4 abajo).
 
 ---
 
-## 📁 Archivo 2: Servicio de Auth (`lib/services/auth.service.ts`)
+## 📁 Archivo 2: Cliente HTTP + flujo (equivalente al antiguo `auth.service`)
 
-**✅ Agregá estos 2 métodos a tu servicio de autenticación existente**
-
-Si no tenés un servicio de auth, creá uno nuevo con estos métodos.
+**✅ En este proyecto:** el transporte está en `src/common/api/clients/auth.http.client.ts` y la orquestación en hooks del flujo (p. ej. login / oauth-callback). Si integrás en otro repo, podés encapsular en un servicio con estos dos comportamientos.
 
 ### Método 1: Iniciar OAuth
 
@@ -88,7 +86,7 @@ initiateOAuth(provider: string, clientId: string): void {
     }
 
     // Importar funciones puras (ajustá la ruta según tu estructura)
-    const { buildOAuthUrl, getCurrentRedirectUri } = require('@/lib/utils/oauth');
+    const { buildOAuthUrl, getCurrentRedirectUri } = require('@common/lib/oauth');
     
     // Construir URL de autorización (función pura)
     const redirectUri = getCurrentRedirectUri();
@@ -100,7 +98,7 @@ initiateOAuth(provider: string, clientId: string): void {
 ```
 
 **📝 Ajustes necesarios:**
-- Cambiá `@/lib/utils/oauth` por la ruta donde copiaste el archivo
+- En este repo: `@common/lib/oauth` (ver `src/common/lib/oauth.ts`)
 - Si usás JavaScript puro, cambiá `require()` por `import`
 
 ### Método 2: Login OAuth (intercambiar código por tokens)
@@ -340,25 +338,20 @@ NEXT_PUBLIC_TENANT_ID=a0000000-0000-0000-0000-000000000001
 ## 📊 Resumen Visual: Qué Copiar
 
 ```
-Tu Proyecto/
-├── lib/
-│   ├── utils/
-│   │   └── oauth.ts              ← COPIAR ARCHIVO COMPLETO
-│   └── services/
-│       └── auth.service.ts       ← AGREGAR 2 MÉTODOS
-│
-└── app/ (o pages/)
-    ├── login/
-    │   └── page.tsx              ← AGREGAR 4 BLOQUES DE CÓDIGO
-    └── auth/
-        └── callback/
-            └── page.tsx          ← COPIAR ARCHIVO COMPLETO
+Tu Proyecto/ (patrón alineado con esta maqueta)
+├── src/common/lib/
+│   └── oauth.ts                  ← COPIAR / adaptar utilidades puras
+├── src/common/api/
+│   ├── clients/                  ← POST oauth/login (transporte)
+│   └── mappers/                ← respuesta API → modelo de UI
+└── app/ (o pages/) + flujo login/callback
+    ├── login/…                   ← botón + redirect
+    └── auth/callback/…           ← pantalla callback
 ```
 
-**Total:**
-- ✅ 2 archivos completos para copiar
-- ✅ 2 métodos para agregar a tu servicio
-- ✅ 4 bloques de código para agregar en login
+**Total (referencia):**
+- ✅ Utilidades OAuth puras + cliente HTTP + mappers
+- ✅ UI del flujo (login + callback) según tu framework
 
 **Tiempo estimado:** 15-20 minutos
 

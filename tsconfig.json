@@ -19,7 +19,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@common/*": ["./src/common/*"],
+      "@flows/*": ["./src/flows/*"]
     }
   },
   "include": [

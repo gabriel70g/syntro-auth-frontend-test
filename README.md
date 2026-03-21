@@ -17,7 +17,7 @@ Esta es una **maqueta/demo** que demuestra:
 Este proyecto usa **validación de contraseña simplificada** (solo no vacía) **a propósito** para demostrar el flujo básico.
 
 **Si integras SyntroAuth en tu frontend de producción**, **debes** implementar validación de complejidad en el cliente (SRP):
-- Usa `validatePasswordStrict()` de `lib/utils/password-validation.ts` o
+- Usa `validatePasswordStrict()` de `src/common/lib/password-validation.ts` (alias `@common/lib/password-validation`) o
 - Implementa requisitos equivalentes: 8+ caracteres, mayúscula, minúscula, número y carácter especial
 - La contraseña no debe enviarse al backend hasta cumplir los requisitos
 
@@ -67,25 +67,29 @@ Esta maqueta muestra cómo integrar SyntroAuth en tu frontend. Cada paso está d
 ### Estructura del Proyecto
 
 ```
-app/
-  ├── login/page.tsx          # Paso 1: Login con email/password
-  ├── auth/callback/page.tsx  # Paso 2: Callback OAuth
-  └── dashboard/page.tsx      # Paso 4: Protección de rutas
+app/                          # Rutas Next (páginas finas → pantallas en flows)
+  ├── login/page.tsx
+  ├── auth/callback/page.tsx
+  └── dashboard/page.tsx
 
-lib/
-  ├── services/
-  │   └── auth.service.ts     # Servicio principal (Paso 1, 2, 3)
-  ├── utils/
-  │   ├── oauth.ts            # Utilidades OAuth (funciones puras)
-  │   ├── crypto.ts           # Cifrado RSA-OAEP
-  │   └── jwt.ts              # Decodificación de JWT
-  └── adapters/
-      └── api.adapter.ts      # Adaptador API → Dominio
+src/common/                   # Compartido: API, dominio, utilidades puras
+  ├── api/
+  │   ├── clients/            # fetch sin lógica de negocio
+  │   ├── mappers/            # API cruda → modelos de UI (funciones puras)
+  │   └── raw/                # tipos de envelope del backend
+  ├── domain/                 # tipos de dominio / vista
+  └── lib/                    # crypto, jwt, oauth, config, storage, etc.
+
+src/flows/                    # Un directorio por flujo (login, oauth-callback, …)
+  └── <flujo>/
+      └── general/            # hooks/, components/, data/, *.css del flujo
 ```
+
+Reglas detalladas: `.cursor/rules/frontend-architecture.mdc`.
 
 ### Paso 1: Login con Email/Password
 
-**Archivos:** `app/login/page.tsx`, `lib/services/auth.service.ts`
+**Archivos:** `app/login/page.tsx`, `src/flows/login/general/`, `src/common/api/clients/auth.http.client.ts`, mappers en `src/common/api/mappers/`
 
 **Flujo:**
 1. Usuario ingresa email/password
@@ -98,13 +102,12 @@ lib/
 // Cifrar antes de enviar
 const encryptedPassword = await encryptPassword(password);
 
-// Login
-const result = await authService.login({ email, password: encryptedPassword });
+// Login (el flujo usa el cliente HTTP + mapper; ver `src/flows/login/`)
 ```
 
 ### Paso 2: OAuth (Google, Apple, etc.)
 
-**Archivos:** `app/auth/callback/page.tsx`, `lib/utils/oauth.ts`
+**Archivos:** `app/auth/callback/page.tsx`, `src/flows/oauth-callback/general/`, `src/common/lib/oauth.ts`
 
 **Flujo:**
 1. Usuario hace clic en "Continuar con Google"
@@ -114,16 +117,14 @@ const result = await authService.login({ email, password: encryptedPassword });
 
 **Código clave:**
 ```typescript
-// Iniciar OAuth
-authService.initiateOAuth('google', clientId);
+// Iniciar OAuth: construir URL con `@common/lib/oauth` y redirigir (ver flujo login)
 
-// En callback: procesar código
-const result = await authService.oauthLogin({ provider, code, redirectUri });
+// En callback: `postOAuthLogin` + mapper (ver `src/flows/oauth-callback/general/`)
 ```
 
 ### Paso 3: Manejo de Tokens
 
-**Archivo:** `lib/services/auth.service.ts`
+**Archivos:** `src/common/lib/storage/auth-session.storage.ts`, flujos que consumen la sesión
 
 - Guardar tokens en localStorage (o HttpOnly cookies en producción)
 - Refresh token automático (implementar según necesidad)
@@ -131,7 +132,7 @@ const result = await authService.oauthLogin({ provider, code, redirectUri });
 
 ### Paso 4: Dashboard/Protección de Rutas
 
-**Archivo:** `app/dashboard/page.tsx`
+**Archivos:** `app/dashboard/page.tsx`, `src/flows/dashboard/general/`
 
 **Ejemplo de protección:**
 ```typescript
@@ -150,7 +151,7 @@ useEffect(() => {
 Este proyecto sigue principios **SOLID** y **Programación Funcional**:
 
 - **Guard Clauses**: Validación temprana (fail fast)
-- **Funciones Puras**: `lib/utils/oauth.ts` - sin side effects
+- **Funciones Puras**: mappers y `src/common/lib/*` (oauth, crypto, jwt) sin efectos donde aplique
 - **Single Responsibility**: Cada función/componente hace una cosa
 - **Dependency Inversion**: Servicios dependen de abstracciones
 

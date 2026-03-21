@@ -1,0 +1,87 @@
+---
+description: Frontend SyntroAuth — common/flows, Next.js, static export, seguridad, testing, estilos globales
+globs: syntro-auth-frontend-test/**/*.{ts,tsx,css}
+---
+
+# Frontend SyntroAuth (demo)
+
+## Ubicación
+
+- **`src/common/`**: Todo lo compartido. **API** (clientes HTTP delgados, tipos crudos del backend, **mapeadores puros** hacia modelos de UI), **`domain/`** (view models desacoplados del JSON), **`lib/`** (config, utilidades puras donde aplique, storage aislado).
+- **`src/flows/<nombre-flujo>/`**: Un directorio por flujo de producto (`login`, `register`, `oauth-callback`, `dashboard`, `mfa-login-forced`, `mfa-account-settings`, `verify-email`).
+- **Convención por flujo (`general/`)**: Lo específico del flujo vive bajo **`src/flows/<flujo>/general/`**:
+  - `general/hooks/` — orquestación cliente (cliente HTTP + mapper + storage).
+  - `general/components/` — UI del flujo (pantallas, sub-bloques).
+  - `general/data/` — constantes y datos puramente declarativos del flujo.
+  - Opcional: `general/layout.tsx` — composición de shell del flujo si aplica.
+  - CSS solo del flujo: p. ej. `general/login.css` (preferir tokens globales en `app/globals.css`).
+  Todo el código del flujo vive bajo `general/`; la raíz `src/flows/<flujo>/` no acumula `hooks/` ni `components/` sueltos.
+- **`app/`**: Solo rutas Next.js **delgadas** (`page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx` según corresponda) que componen o delegan en `@flows/...`. Rutas = segmentos bajo `app/` (App Router).
+
+## Next.js (patrones recomendados por el equipo de Next / Vercel)
+
+Objetivo: máxima compatibilidad con upgrades y documentación oficial.
+
+1. **App Router** como fuente de verdad de rutas; no mezclar con `pages/` salvo migración explícita.
+2. **Server Components por defecto.** Sin `'use client'`, el módulo es servidor.
+3. **`'use client'` solo donde haga falta**: estado, efectos, eventos DOM, APIs del navegador, hooks de datos en cliente; **límite mínimo** del árbol (pantalla o componente hoja), no layouts raíz sin motivo.
+4. **Frontera servidor → cliente**: las props que pasan de un Server Component a un Client Component deben ser **serializables** (JSON-like: primitivos, arrays, objetos planos, `Date` según reglas actuales de React). **Prohibido** pasar funciones, instancias de clase con métodos, `Map`/`Set`, símbolos, etc.; calcular en servidor y pasar DTOs ya mapeados.
+5. **Metadatos y layout raíz**: `metadata` / `generateMetadata`, `next/font`, providers que requieran cliente según [nextjs.org/docs](https://nextjs.org/docs) (layout servidor + subárbol cliente).
+6. **Datos en servidor cuando sea posible**: componentes `async` + `fetch` con caché/revalidate según docs. Si la pantalla es cliente por sesión/tokens solo en `localStorage`, documentar en comentario breve el motivo del boundary.
+7. **Errores y estados de ruta**: usar patrones oficiales del App Router — `error.tsx` (error boundaries por segmento), **`notFound()`** / `not-found.tsx` cuando no hay recurso, **`loading.tsx`** y/o **`<Suspense>`** para estados de carga; evitar como única estrategia silenciar fallos solo con `console.error` en cliente.
+8. **Imports**: `@common/*`, `@flows/*` (`tsconfig.json`); no introducir patrones que contradigan el major de Next en uso.
+
+## Static export (`output: 'export'`)
+
+Este proyecto usa **export estático** (`next.config`: `output: 'export'`). Implica:
+
+1. **No usar** Route Handlers (`app/api/**/route.ts`), **Server Actions** con mutación que dependa de runtime servidor en el mismo deploy, **revalidación ISR** dinámica, ni funciones que requieran servidor Node en tiempo de petición para armar HTML por usuario.
+2. **Imágenes**: coherente con export — `images.unoptimized` o loader externo según config actual; no asumir optimización on-demand del servidor Next.
+3. **Cualquier feature nueva**: verificar que **`npm run build`** siga generando **`out/`** sin rutas dinámicas prohibidas por export.
+4. **`next start`**: no aplica al artefacto estático; servir `out/` (CDN/nginx/S3) según README.
+
+## Variables de entorno
+
+1. **`NEXT_PUBLIC_*`**: únicas expuestas al bundle del cliente; nunca poner secretos ahí.
+2. **Secretos** (API keys privadas, client secrets): solo backend u orígenes servidor; en este frontend estático, **no existen** env privadas en build para lógica secreta — todo lo sensible vive en SyntroAuth API.
+3. **Documentar** en código o README las env requeridas para build/runtime en cliente (`NEXT_PUBLIC_API_URL`, etc.).
+
+## Seguridad (frontend)
+
+1. **No loguear** tokens JWT, refresh tokens, códigos OAuth ni contraseñas (ni en prod ni en dev compartido).
+2. **No renderizar HTML crudo** del backend sin sanitizar (`dangerouslySetInnerHTML` solo con política explícita y fuente confiable).
+3. **Sesión**: hoy `localStorage` es aceptable para demo; en producción evaluar **cookies HttpOnly** + mismo sitio / hardening; la regla es **no duplicar secretos** en el cliente.
+4. **Enlaces externos**: `rel="noopener noreferrer"` cuando `target="_blank"`.
+
+## Estilos: Tailwind y CSS global (coherencia)
+
+1. **Tokens y tema** en **`app/globals.css`** (`@import "tailwindcss"`, `:root`, `@theme inline` en Tailwind v4).
+2. **UI**: clases Tailwind compartidas; misma escala tipográfica y colores entre flujos.
+3. **CSS por flujo** (`*.css` fuera de `globals.css`): solo si aporta valor y **reutiliza variables** del tema global; evitar paletas duplicadas.
+4. **Sin `style={{ ... }}`** salvo valores dinámicos inevitables; preferir clases o variables CSS.
+
+## Testing y calidad
+
+1. **Stack recomendado** (alinear con el monorepo): **Vitest** + **React Testing Library**; tests junto al código (`*.test.ts` / `*.test.tsx`) o carpeta `__tests__` por módulo, una convención por repo.
+2. **Prioridad de cobertura**: **mapeadores** (`src/common/api/mappers/`) y **hooks de flujo** (orquestación); luego componentes con lógica condicional relevante.
+3. **Mappers**: entradas `unknown` / JSON parcial, casos felices y errores; sin red ni storage.
+4. **`npm run build` y `npm run lint`**: deben pasar en CI antes de merge; no mergear regresiones de TypeScript.
+
+## Accesibilidad y UX base
+
+1. Formularios: **labels** asociados, mensajes de error **asociados al control** (`aria-describedby` / `aria-invalid` cuando corresponda).
+2. **Foco** visible; teclado navegable en flujos críticos (login, MFA).
+3. **Contraste** razonable respetando tokens de tema (claro/oscuro).
+
+## Reglas de arquitectura (API y componentes)
+
+1. **Nada de respuestas crudas del backend en componentes.** Clientes → `{ ok, body }`; **mapeadores** convierten `unknown` → dominio / outcomes. Mapeadores **puras** (sin `fetch`, sin `localStorage`).
+2. **Red** solo en `src/common/api/clients/` o hooks de flujo que orquestan cliente + mapper + storage.
+3. **Storage** concentrado en `src/common/lib/storage/` (no en mapeadores).
+4. **Componentes pequeños**, alta cohesión; un componente = una responsabilidad visual o sub-bloque testeable.
+5. **Imports**: `@common/*`, `@flows/*`.
+
+## Mejoras continuas (opcional)
+
+- **TanStack Query** (u otro server-state): si crece la complejidad de caché/refetch, introducir con **mapeo obligatorio** tras el fetch (misma regla anti-coupling).
+- **i18n**: extraer strings cuando haya segundo idioma; mantener claves estables.
