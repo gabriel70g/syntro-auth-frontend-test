@@ -41,3 +41,9 @@ export interface ApiMfaSetupData {
     qrCodeUri: string;
     manualEntryKey: string;
 }
+
+/** Cuerpo de PasswordRecoveryResponse (camelCase desde el API). */
+export interface ApiPasswordRecoveryData {
+    message: string;
+    debugToken?: string | null;
+}

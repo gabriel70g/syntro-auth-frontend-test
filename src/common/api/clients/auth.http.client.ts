@@ -40,3 +40,30 @@ export async function postLogin2fa(body: { tempToken: string; code: string }): P
     });
     return { ok: response.ok, body: await readJsonSafe(response) };
 }
+
+/**
+ * Why: Solicitud de recuperación (anti-enumeración: el backend responde 200 genérico).
+ */
+export async function postAuthForgotPassword(body: { email: string }): Promise<{ ok: boolean; body: unknown }> {
+    const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: getDefaultHeaders(),
+        body: JSON.stringify(body),
+    });
+    return { ok: response.ok, body: await readJsonSafe(response) };
+}
+
+/**
+ * Why: Completa el reset con token del correo; `newPassword` va cifrado con handshake RSA como login.
+ */
+export async function postAuthResetPassword(body: {
+    token: string;
+    newPassword: string;
+}): Promise<{ ok: boolean; body: unknown }> {
+    const response = await fetch(`${API_URL}/api/auth/reset-password`, {
+        method: 'POST',
+        headers: getDefaultHeaders(),
+        body: JSON.stringify(body),
+    });
+    return { ok: response.ok, body: await readJsonSafe(response) };
+}
