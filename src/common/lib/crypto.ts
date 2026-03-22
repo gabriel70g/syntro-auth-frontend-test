@@ -21,7 +21,12 @@ export async function encryptPassword(password: string): Promise<string> {
     if (!response.ok) throw new Error('No se pudo obtener la clave pública de seguridad');
 
     const pem = await response.text();
-    const seed = response.headers.get('X-Correlation-Id') || '';
+    const seed = response.headers.get('X-Correlation-Id')?.trim() ?? '';
+    if (!seed) {
+        throw new Error(
+            'No se recibió la semilla del handshake (cabecera X-Correlation-Id). El API debe exponerla en CORS (Access-Control-Expose-Headers).'
+        );
+    }
 
     const keyBuffer = pemToArrayBuffer(pem);
     const publicKey = await window.crypto.subtle.importKey(
