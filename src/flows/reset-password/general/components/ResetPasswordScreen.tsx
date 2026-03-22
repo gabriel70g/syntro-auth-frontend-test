@@ -24,7 +24,9 @@ export function ResetPasswordScreen() {
                 <div className="login-header">
                     <AuthFlowBrandMark />
                     <h1 className="login-title">Nueva contraseña</h1>
-                    <p className="login-subtitle">Elige una contraseña segura para tu cuenta.</p>
+                    <p className="login-subtitle">
+                        Ejemplo: cualquier contraseña no vacía (igual que registro y dashboard).
+                    </p>
                 </div>
 
                 {missingToken ? (
@@ -94,7 +96,7 @@ export function ResetPasswordScreen() {
                                     value={c.password}
                                     onChange={(e) => c.setPassword(e.target.value)}
                                     className="form-input"
-                                    placeholder="••••••••"
+                                    placeholder="Cualquier valor no vacío"
                                     disabled={c.isLoading}
                                     autoComplete="new-password"
                                 />
@@ -120,7 +122,7 @@ export function ResetPasswordScreen() {
                                     value={c.confirmPassword}
                                     onChange={(e) => c.setConfirmPassword(e.target.value)}
                                     className="form-input"
-                                    placeholder="••••••••"
+                                    placeholder="Cualquier valor no vacío"
                                     disabled={c.isLoading}
                                     autoComplete="new-password"
                                 />

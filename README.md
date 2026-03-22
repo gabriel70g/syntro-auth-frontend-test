@@ -16,10 +16,7 @@ Esta es una **maqueta/demo** que demuestra:
 
 Este proyecto usa **validación de contraseña simplificada** (solo no vacía) **a propósito** para demostrar el flujo básico.
 
-**Si integras SyntroAuth en tu frontend de producción**, **debes** implementar validación de complejidad en el cliente (SRP):
-- Usa `validatePasswordStrict()` de `src/common/lib/password-validation.ts` (alias `@common/lib/password-validation`) o
-- Implementa requisitos equivalentes: 8+ caracteres, mayúscula, minúscula, número y carácter especial
-- La contraseña no debe enviarse al backend hasta cumplir los requisitos
+**En producción**, conviene añadir en tu propio código reglas de complejidad (longitud, mayúsculas, etc.) antes de cifrar y enviar la contraseña. Esta maqueta no las incluye a propósito.
 
 ## 🚀 Configuración para Railway
 

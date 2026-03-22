@@ -121,7 +121,7 @@ export function RegisterFormFields({
                         </button>
                     </div>
                     <p className="form-hint" style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem', lineHeight: 1.4 }}>
-                        Ejemplo simplificado: acepta cualquier valor no vacío. La validación se realiza en cliente (SRP).
+                        Igual que el dashboard: solo se exige que no esté vacía.
                     </p>
                 </div>
 
