@@ -1,5 +1,5 @@
 /**
- * Why: Contenido del archivo .txt (puro); el usuario puede guardarlo en gestor/carpeta cifrada sin pasar por servidores.
+ * Why: Plain .txt body; user can save offline (password manager / encrypted storage) without uploading to any server.
  */
 export function buildRecoveryCodesFileBody(codes: string[], preambleLines: string[]): string {
     const body = [...preambleLines, '', '---', '', ...codes, ''].join('\n');
@@ -7,21 +7,21 @@ export function buildRecoveryCodesFileBody(codes: string[], preambleLines: strin
 }
 
 /**
- * Why: Cabecera fija con aviso de seguridad y marca de tiempo UTC.
+ * Why: Fixed header with security notice and UTC timestamp (English for exported artifact).
  */
 export function defaultRecoveryCodesPreamble(): string[] {
     const iso = new Date().toISOString();
     return [
-        'SyntroAuth — Códigos de recuperación 2FA',
-        `Generado (UTC): ${iso}`,
+        'SyntroAuth — Two-factor authentication (2FA) recovery codes',
+        `Generated (UTC): ${iso}`,
         '',
-        'Guardá este archivo en un lugar seguro (gestor de contraseñas, carpeta cifrada del sistema, cofre).',
-        'Cada código suele poder usarse una sola vez; no lo compartas.',
+        'Store this file in a safe place (password manager, encrypted folder, physical safe).',
+        'Each code is typically single-use; do not share it with anyone.',
     ];
 }
 
 /**
- * Why: Descarga en el navegador; no sube el contenido a ningún backend.
+ * Why: Browser download only; content never sent to a backend.
  */
 export function downloadTextFile(filename: string, content: string): void {
     if (typeof window === 'undefined') return;
@@ -39,7 +39,7 @@ export function downloadTextFile(filename: string, content: string): void {
 }
 
 /**
- * Why: Un solo click tras validar MFA; nombre con fecha para archivar.
+ * Why: One click after MFA enrollment; filename includes date for archiving.
  */
 export function downloadRecoveryCodesTxt(codes: string[]): void {
     if (codes.length === 0) return;
