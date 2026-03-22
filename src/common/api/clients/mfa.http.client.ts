@@ -53,14 +53,19 @@ export async function postAccountMfaConfirmSync(
     return { ok: response.ok, body: await readJsonSafe(response) };
 }
 
-export async function deleteAccountMfaDisable(bearerAccessToken: string, password: string): Promise<{
-    ok: boolean;
-    body: unknown;
-}> {
-    const response = await fetch(`${API_URL}/api/account/mfa/disable`, {
-        method: 'DELETE',
+export async function postAccountMfaDisableRequest(bearerAccessToken: string): Promise<{ ok: boolean; body: unknown }> {
+    const response = await fetch(`${API_URL}/api/account/mfa/disable/request`, {
+        method: 'POST',
         headers: headersWithOptionalBearer(bearerAccessToken),
-        body: JSON.stringify({ password }),
+    });
+    return { ok: response.ok, body: await readJsonSafe(response) };
+}
+
+export async function postAuthMfaDisableConfirm(token: string): Promise<{ ok: boolean; body: unknown }> {
+    const response = await fetch(`${API_URL}/api/auth/mfa/disable/confirm`, {
+        method: 'POST',
+        headers: getDefaultHeaders(),
+        body: JSON.stringify({ token }),
     });
     return { ok: response.ok, body: await readJsonSafe(response) };
 }

@@ -3,15 +3,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-    deleteAccountMfaDisable,
     postAccountMfaConfirmSync,
+    postAccountMfaDisableRequest,
     postAccountMfaSetup,
 } from '@common/api/clients/mfa.http.client';
 import { mapMfaConfirmHttpToOutcome, mapMfaSetupHttpToOutcome } from '@common/api/mappers/mfa.mapper';
 import { mapUnknownToErrorMessage } from '@common/api/mappers/error-message.mapper';
 import { readStoredAccessToken } from '@common/lib/storage/auth-session.storage';
 
-export type AccountMfaStep = 'intro' | 'scan' | 'sync' | 'done' | 'disable';
+export type AccountMfaStep = 'intro' | 'scan' | 'sync' | 'done' | 'disable' | 'disable_email_sent';
 
 /**
  * Why: Wizard 2FA desde cuenta (JWT completo); HTTP + mapeo fuera del JSX.
@@ -22,7 +22,6 @@ export function useAccountMfaSettingsController() {
     const [otpAuthUri, setOtpAuthUri] = useState('');
     const [manualKey, setManualKey] = useState('');
     const [code, setCode] = useState('');
-    const [disablePassword, setDisablePassword] = useState('');
     const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -73,28 +72,20 @@ export function useAccountMfaSettingsController() {
         [code]
     );
 
-    const submitDisable = useCallback(
-        async (e: React.FormEvent) => {
-            e.preventDefault();
-            const token = readStoredAccessToken();
-            if (!token || !disablePassword) {
-                setError('Contraseña requerida');
-                return;
-            }
-            setLoading(true);
-            setError('');
-            const { ok, body } = await deleteAccountMfaDisable(token, disablePassword);
-            setLoading(false);
-            if (!ok) {
-                setError(mapUnknownToErrorMessage(body, 'No se pudo desactivar 2FA'));
-                return;
-            }
-            setDisablePassword('');
-            setStep('intro');
-            alert('2FA desactivado.');
-        },
-        [disablePassword]
-    );
+    const requestDisableEmail = useCallback(async (e: React.FormEvent) => {
+        e.preventDefault();
+        const token = readStoredAccessToken();
+        if (!token) return;
+        setLoading(true);
+        setError('');
+        const { ok, body } = await postAccountMfaDisableRequest(token);
+        setLoading(false);
+        if (!ok) {
+            setError(mapUnknownToErrorMessage(body, 'No se pudo enviar el correo'));
+            return;
+        }
+        setStep('disable_email_sent');
+    }, []);
 
     return {
         step,
@@ -103,8 +94,6 @@ export function useAccountMfaSettingsController() {
         manualKey,
         code,
         setCode,
-        disablePassword,
-        setDisablePassword,
         recoveryCodes,
         error,
         setError,
@@ -112,6 +101,6 @@ export function useAccountMfaSettingsController() {
         router,
         startServerSetup,
         submitSync,
-        submitDisable,
+        requestDisableEmail,
     };
 }
