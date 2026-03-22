@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import { postAuthResetPassword } from '@common/api/clients/auth.http.client';
 import { mapResetPasswordResponse } from '@common/api/mappers/password-recovery.mapper';
 import { encryptPassword } from '@common/lib/crypto';
-import { validatePasswordStrict } from '@common/lib/password-validation';
+import { validatePassword } from '@common/lib/password-validation';
 
 /**
  * Why: Reset con token del query string; contraseña cifrada como en login.
@@ -31,7 +31,7 @@ export function useResetPasswordPageController(resetToken: string) {
                 return;
             }
 
-            const pwd = validatePasswordStrict(password);
+            const pwd = validatePassword(password);
             if (!pwd.valid) {
                 setError(pwd.errors.join(', '));
                 return;
