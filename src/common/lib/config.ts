@@ -10,6 +10,9 @@ export const DEFAULT_TENANT_ID =
     (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_TENANT_ID) ||
     'a0000000-0000-0000-0000-000000000001';
 
+/** Why: Envía/recibe la cookie HttpOnly del refresh cuando el front y la API son orígenes distintos (CORS + credenciales). */
+export const API_FETCH_CREDENTIALS: RequestCredentials = 'include';
+
 export function getRedirectUri(): string {
     if (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_REDIRECT_URI) {
         return `${process.env.NEXT_PUBLIC_REDIRECT_URI}/auth/callback`;

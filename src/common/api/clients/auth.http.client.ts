@@ -1,4 +1,4 @@
-import { API_URL, getDefaultHeaders } from '@common/lib/config';
+import { API_URL, API_FETCH_CREDENTIALS, getDefaultHeaders } from '@common/lib/config';
 import { readJsonSafe } from '@common/api/clients/http.helpers';
 
 /**
@@ -23,6 +23,7 @@ export async function postOAuthLogin(body: {
 }): Promise<{ ok: boolean; body: unknown }> {
     const response = await fetch(`${API_URL}/api/auth/oauth/login`, {
         method: 'POST',
+        credentials: API_FETCH_CREDENTIALS,
         headers: getDefaultHeaders(),
         body: JSON.stringify(body),
     });
@@ -35,6 +36,7 @@ export async function postLogin2fa(body: { tempToken: string; code: string }): P
 }> {
     const response = await fetch(`${API_URL}/api/auth/login/2fa`, {
         method: 'POST',
+        credentials: API_FETCH_CREDENTIALS,
         headers: getDefaultHeaders(),
         body: JSON.stringify(body),
     });
@@ -47,6 +49,7 @@ export async function postLogin2fa(body: { tempToken: string; code: string }): P
 export async function postAuthForgotPassword(body: { email: string }): Promise<{ ok: boolean; body: unknown }> {
     const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
         method: 'POST',
+        credentials: API_FETCH_CREDENTIALS,
         headers: getDefaultHeaders(),
         body: JSON.stringify(body),
     });
@@ -62,6 +65,35 @@ export async function postAuthResetPassword(body: {
 }): Promise<{ ok: boolean; body: unknown }> {
     const response = await fetch(`${API_URL}/api/auth/reset-password`, {
         method: 'POST',
+        credentials: API_FETCH_CREDENTIALS,
+        headers: getDefaultHeaders(),
+        body: JSON.stringify(body),
+    });
+    return { ok: response.ok, body: await readJsonSafe(response) };
+}
+
+/** Why: RTR; el refresh va en cookie HttpOnly — body puede ir vacío. */
+export async function postAuthRefresh(body: { refreshToken?: string } = {}): Promise<{
+    ok: boolean;
+    body: unknown;
+}> {
+    const response = await fetch(`${API_URL}/api/auth/refresh`, {
+        method: 'POST',
+        credentials: API_FETCH_CREDENTIALS,
+        headers: getDefaultHeaders(),
+        body: JSON.stringify(body),
+    });
+    return { ok: response.ok, body: await readJsonSafe(response) };
+}
+
+/** Why: Revoca refresh en servidor y borra la cookie HttpOnly. */
+export async function postAuthLogout(body: { refreshToken?: string } = {}): Promise<{
+    ok: boolean;
+    body: unknown;
+}> {
+    const response = await fetch(`${API_URL}/api/auth/logout`, {
+        method: 'POST',
+        credentials: API_FETCH_CREDENTIALS,
         headers: getDefaultHeaders(),
         body: JSON.stringify(body),
     });

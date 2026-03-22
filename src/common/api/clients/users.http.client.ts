@@ -1,4 +1,4 @@
-import { API_URL, getDefaultHeaders } from '@common/lib/config';
+import { API_URL, API_FETCH_CREDENTIALS, getDefaultHeaders } from '@common/lib/config';
 import { readJsonSafe } from '@common/api/clients/http.helpers';
 
 export async function postCreateUser(body: { email: string; password: string }): Promise<{
@@ -7,6 +7,7 @@ export async function postCreateUser(body: { email: string; password: string }):
 }> {
     const response = await fetch(`${API_URL}/api/users`, {
         method: 'POST',
+        credentials: API_FETCH_CREDENTIALS,
         headers: getDefaultHeaders(),
         body: JSON.stringify(body),
     });

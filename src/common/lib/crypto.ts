@@ -1,4 +1,4 @@
-import { API_URL } from '@common/lib/config';
+import { API_URL, API_FETCH_CREDENTIALS } from '@common/lib/config';
 
 function pemToArrayBuffer(pem: string): ArrayBuffer {
     const b64 = pem
@@ -17,7 +17,9 @@ function pemToArrayBuffer(pem: string): ArrayBuffer {
  * Why: Handshake RSA-OAEP con el backend; efecto de red aislado (único lugar permitido aquí).
  */
 export async function encryptPassword(password: string): Promise<string> {
-    const response = await fetch(`${API_URL}/api/auth/security/public-key`);
+    const response = await fetch(`${API_URL}/api/auth/security/public-key`, {
+        credentials: API_FETCH_CREDENTIALS,
+    });
     if (!response.ok) throw new Error('No se pudo obtener la clave pública de seguridad');
 
     const pem = await response.text();
