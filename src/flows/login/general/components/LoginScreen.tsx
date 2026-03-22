@@ -41,9 +41,9 @@ export function LoginScreen() {
                 />
 
                 <div className="login-footer">
-                    <a href="#" className="footer-link">
+                    <Link href="/forgot-password" className="footer-link">
                         ¿Olvidaste tu contraseña?
-                    </a>
+                    </Link>
                     <Link href="/register" className="footer-link">
                         ¿No tienes cuenta? Regístrate
                     </Link>
