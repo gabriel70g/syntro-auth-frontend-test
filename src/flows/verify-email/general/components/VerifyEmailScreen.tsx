@@ -6,6 +6,7 @@ import { postVerifyEmailConfirm } from "@common/api/clients/verification.http.cl
 import { mapVerifyEmailConfirmBody } from "@common/api/mappers/verify-email.mapper";
 import { postAccountMfaConfirmSync } from "@common/api/clients/mfa.http.client";
 import { mapMfaConfirmHttpToOutcome } from "@common/api/mappers/mfa.mapper";
+import { downloadRecoveryCodesTxt } from "@common/lib/recovery-codes-download";
 
 export function VerifyEmailScreen() {
     const searchParams = useSearchParams();
@@ -195,7 +196,10 @@ export function VerifyEmailScreen() {
                         <div className="text-center mb-6">
                             <span className="text-5xl">🎉</span>
                             <h2 className="text-xl font-semibold mt-2 text-green-400">¡Cuenta Protegida!</h2>
-                            <p className="text-neutral-400 text-sm mt-1">Guarda estos códigos de recuperación en un lugar seguro. Los necesitarás si pierdes acceso a tu teléfono.</p>
+                            <p className="text-neutral-400 text-sm mt-1">
+                                Guardalos en un lugar seguro (gestor de contraseñas o carpeta cifrada). Podés copiarlos o
+                                descargar un archivo .txt.
+                            </p>
                         </div>
 
                         <div className="grid grid-cols-2 gap-3 mb-6 bg-neutral-950 p-4 rounded-xl border border-neutral-800">
@@ -206,18 +210,29 @@ export function VerifyEmailScreen() {
                             ))}
                         </div>
 
-                        <div className="flex gap-3">
+                        <div className="flex flex-col gap-3">
+                            <div className="flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => copyToClipboard(recoveryCodes.join("\n"))}
+                                    className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-white py-3 rounded-lg font-medium transition-colors"
+                                >
+                                    Copiar códigos
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => downloadRecoveryCodesTxt(recoveryCodes)}
+                                    className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-white py-3 rounded-lg font-medium transition-colors"
+                                >
+                                    Descargar .txt
+                                </button>
+                            </div>
                             <button
-                                onClick={() => copyToClipboard(recoveryCodes.join("\n"))}
-                                className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-white py-3 rounded-lg font-medium transition-colors"
-                            >
-                                Copiar Códigos
-                            </button>
-                            <button
+                                type="button"
                                 onClick={() => router.push("/dashboard")}
-                                className="flex-1 bg-white text-black hover:bg-gray-200 font-bold py-3 rounded-lg transition-colors"
+                                className="w-full bg-white text-black hover:bg-gray-200 font-bold py-3 rounded-lg transition-colors"
                             >
-                                Ir al Dashboard
+                                Ir al dashboard
                             </button>
                         </div>
                     </div>

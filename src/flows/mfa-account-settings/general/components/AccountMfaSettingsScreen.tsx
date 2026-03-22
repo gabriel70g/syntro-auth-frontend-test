@@ -7,6 +7,7 @@
  */
 import { type CSSProperties } from 'react';
 import { MfaTotpQrCode } from '@common/components/MfaTotpQrCode';
+import { downloadRecoveryCodesTxt } from '@common/lib/recovery-codes-download';
 import { useAccountMfaSettingsController } from '@flows/mfa-account-settings/general/hooks/useAccountMfaSettingsController';
 
 export function AccountMfaSettingsScreen() {
@@ -225,8 +226,12 @@ export function AccountMfaSettingsScreen() {
 
                 {flow.step === 'done' && (
                     <div>
-                        <p style={{ color: '#86efac', marginBottom: '1rem' }}>
+                        <p style={{ color: '#86efac', marginBottom: '0.5rem' }}>
                             2FA activado. Guardá los códigos de recuperación.
+                        </p>
+                        <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginBottom: '1rem', lineHeight: 1.5 }}>
+                            Podés copiarlos o descargar un archivo .txt y guardarlo en un gestor de contraseñas o carpeta
+                            cifrada.
                         </p>
                         <div
                             style={{
@@ -252,6 +257,48 @@ export function AccountMfaSettingsScreen() {
                                 </code>
                             ))}
                         </div>
+                        <div
+                            style={{
+                                display: 'flex',
+                                gap: '0.5rem',
+                                marginBottom: '0.75rem',
+                            }}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => void navigator.clipboard.writeText(flow.recoveryCodes.join('\n'))}
+                                style={{
+                                    flex: 1,
+                                    padding: '0.75rem',
+                                    borderRadius: '8px',
+                                    border: '1px solid #475569',
+                                    background: 'transparent',
+                                    color: '#e2e8f0',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    fontSize: '0.875rem',
+                                }}
+                            >
+                                Copiar
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => downloadRecoveryCodesTxt(flow.recoveryCodes)}
+                                style={{
+                                    flex: 1,
+                                    padding: '0.75rem',
+                                    borderRadius: '8px',
+                                    border: 'none',
+                                    background: '#334155',
+                                    color: '#fff',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    fontSize: '0.875rem',
+                                }}
+                            >
+                                Descargar .txt
+                            </button>
+                        </div>
                         <button
                             type="button"
                             onClick={() => flow.router.push('/dashboard')}
@@ -272,28 +319,14 @@ export function AccountMfaSettingsScreen() {
                 )}
 
                 {flow.step === 'disable' && (
-                    <form onSubmit={flow.submitDisable}>
-                        <p style={{ color: '#cbd5e1', fontSize: '0.9rem', marginBottom: '1rem' }}>
-                            Confirmá con tu contraseña para desactivar 2FA en esta cuenta.
+                    <form onSubmit={flow.requestDisableEmail}>
+                        <p style={{ color: '#cbd5e1', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: 1.6 }}>
+                            Te enviaremos un correo con un enlace de un solo uso (válido unos 10 minutos). Abrilo desde el
+                            dispositivo donde podés leer el mail con calma; el enlace confirma la baja de 2FA.
                         </p>
                         {flow.error && (
                             <p style={{ color: '#fca5a5', fontSize: '0.875rem', marginBottom: '0.75rem' }}>{flow.error}</p>
                         )}
-                        <input
-                            type="password"
-                            value={flow.disablePassword}
-                            onChange={(e) => flow.setDisablePassword(e.target.value)}
-                            placeholder="Contraseña"
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem',
-                                borderRadius: '8px',
-                                border: '1px solid #475569',
-                                background: '#1e293b',
-                                color: '#fff',
-                                marginBottom: '1rem',
-                            }}
-                        />
                         <button
                             type="submit"
                             disabled={flow.loading}
@@ -308,7 +341,7 @@ export function AccountMfaSettingsScreen() {
                                 cursor: flow.loading ? 'not-allowed' : 'pointer',
                             }}
                         >
-                            {flow.loading ? '…' : 'Desactivar 2FA'}
+                            {flow.loading ? 'Enviando…' : 'Enviar correo de confirmación'}
                         </button>
                         <button
                             type="button"
@@ -328,6 +361,32 @@ export function AccountMfaSettingsScreen() {
                             Cancelar
                         </button>
                     </form>
+                )}
+
+                {flow.step === 'disable_email_sent' && (
+                    <div>
+                        <p style={{ color: '#86efac', marginBottom: '0.75rem' }}>Correo enviado.</p>
+                        <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+                            Revisá tu bandeja (y spam). Cuando abras el enlace del mail, 2FA se desactivará en esta cuenta.
+                            El enlace solo sirve una vez.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => flow.setStep('intro')}
+                            style={{
+                                width: '100%',
+                                padding: '0.875rem',
+                                borderRadius: '8px',
+                                border: 'none',
+                                fontWeight: 700,
+                                background: '#3b82f6',
+                                color: '#fff',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            Volver
+                        </button>
+                    </div>
                 )}
             </div>
 
