@@ -19,13 +19,11 @@ function isMfaRequiredData(data: unknown): data is { result: 'mfa_required'; tem
 
 function isLoginSuccessData(data: unknown): data is {
     accessToken: string;
-    refreshToken: string;
+    refreshToken?: string | null;
 } {
-    return (
-        isRecord(data) &&
-        typeof data.accessToken === 'string' &&
-        typeof data.refreshToken === 'string'
-    );
+    if (!isRecord(data) || typeof data.accessToken !== 'string') return false;
+    const rt = data.refreshToken;
+    return rt === undefined || rt === null || typeof rt === 'string';
 }
 
 /**
@@ -52,7 +50,10 @@ export function mapLoginResponseBodyToResult(httpOk: boolean, body: unknown): Lo
     }
 
     if (isLoginSuccessData(data)) {
-        const session = mapAccessTokenPairToAuthSession(data.accessToken, data.refreshToken);
+        const session = mapAccessTokenPairToAuthSession(
+            data.accessToken,
+            typeof data.refreshToken === 'string' ? data.refreshToken : undefined
+        );
         if (!session) {
             return { success: false, error: 'Respuesta del servidor inválida' };
         }

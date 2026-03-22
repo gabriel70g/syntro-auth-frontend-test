@@ -1,4 +1,4 @@
-import { API_URL, getDefaultHeaders, mergeHeaders } from '@common/lib/config';
+import { API_URL, API_FETCH_CREDENTIALS, getDefaultHeaders, mergeHeaders } from '@common/lib/config';
 import { readJsonSafe } from '@common/api/clients/http.helpers';
 
 export async function postVerifyEmailConfirm(token: string, tenantId?: string): Promise<{
@@ -11,6 +11,7 @@ export async function postVerifyEmailConfirm(token: string, tenantId?: string): 
 
     const response = await fetch(`${API_URL}/api/auth/verify-email/confirm`, {
         method: 'POST',
+        credentials: API_FETCH_CREDENTIALS,
         headers,
         body: JSON.stringify({ token }),
     });

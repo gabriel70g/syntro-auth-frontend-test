@@ -23,7 +23,8 @@ export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse;
 
 export interface ApiLoginSuccessData {
     accessToken: string;
-    refreshToken: string;
+    /** Opcional si el API envía el refresh solo por cookie HttpOnly. */
+    refreshToken?: string | null;
     accessTokenExpiresAt: string;
     tokenType: string;
 }

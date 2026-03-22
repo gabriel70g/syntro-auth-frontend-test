@@ -7,9 +7,7 @@ import type { AuthSession } from '@common/domain/auth.domain';
 export function writeAuthSessionToStorage(session: AuthSession): void {
     if (typeof window === 'undefined') return;
     localStorage.setItem('auth_token', session.token);
-    if (session.refreshToken) {
-        localStorage.setItem('refresh_token', session.refreshToken);
-    }
+    // Refresh en cookie HttpOnly (API); no persistir en localStorage.
 }
 
 export function clearAuthSessionStorage(): void {

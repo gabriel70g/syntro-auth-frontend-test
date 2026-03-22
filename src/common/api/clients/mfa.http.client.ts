@@ -1,4 +1,4 @@
-import { API_URL, getDefaultHeaders, mergeHeaders } from '@common/lib/config';
+import { API_URL, API_FETCH_CREDENTIALS, getDefaultHeaders, mergeHeaders } from '@common/lib/config';
 import { readJsonSafe } from '@common/api/clients/http.helpers';
 
 function headersWithOptionalBearer(bearer?: string): Record<string, string> {
@@ -10,6 +10,7 @@ function headersWithOptionalBearer(bearer?: string): Record<string, string> {
 export async function postAuthMfaSetup(bearerTempToken: string): Promise<{ ok: boolean; body: unknown }> {
     const response = await fetch(`${API_URL}/api/auth/mfa/setup`, {
         method: 'POST',
+        credentials: API_FETCH_CREDENTIALS,
         headers: headersWithOptionalBearer(bearerTempToken),
     });
     return { ok: response.ok, body: await readJsonSafe(response) };
@@ -21,6 +22,7 @@ export async function postAuthMfaEnable(bearerTempToken: string, code: string): 
 }> {
     const response = await fetch(`${API_URL}/api/auth/mfa/enable`, {
         method: 'POST',
+        credentials: API_FETCH_CREDENTIALS,
         headers: headersWithOptionalBearer(bearerTempToken),
         body: JSON.stringify({ code }),
     });
@@ -30,6 +32,7 @@ export async function postAuthMfaEnable(bearerTempToken: string, code: string): 
 export async function postAccountMfaSetup(bearerAccessToken: string): Promise<{ ok: boolean; body: unknown }> {
     const response = await fetch(`${API_URL}/api/account/mfa/setup`, {
         method: 'POST',
+        credentials: API_FETCH_CREDENTIALS,
         headers: headersWithOptionalBearer(bearerAccessToken),
     });
     return { ok: response.ok, body: await readJsonSafe(response) };
@@ -47,6 +50,7 @@ export async function postAccountMfaConfirmSync(
     const headers = tenantId ? mergeHeaders(base, { 'X-Tenant-Id': tenantId }) : base;
     const response = await fetch(`${API_URL}/api/account/mfa/confirm-sync`, {
         method: 'POST',
+        credentials: API_FETCH_CREDENTIALS,
         headers,
         body: JSON.stringify({ code }),
     });
@@ -56,6 +60,7 @@ export async function postAccountMfaConfirmSync(
 export async function postAccountMfaDisableRequest(bearerAccessToken: string): Promise<{ ok: boolean; body: unknown }> {
     const response = await fetch(`${API_URL}/api/account/mfa/disable/request`, {
         method: 'POST',
+        credentials: API_FETCH_CREDENTIALS,
         headers: headersWithOptionalBearer(bearerAccessToken),
     });
     return { ok: response.ok, body: await readJsonSafe(response) };
@@ -64,6 +69,7 @@ export async function postAccountMfaDisableRequest(bearerAccessToken: string): P
 export async function postAuthMfaDisableConfirm(token: string): Promise<{ ok: boolean; body: unknown }> {
     const response = await fetch(`${API_URL}/api/auth/mfa/disable/confirm`, {
         method: 'POST',
+        credentials: API_FETCH_CREDENTIALS,
         headers: getDefaultHeaders(),
         body: JSON.stringify({ token }),
     });
@@ -76,6 +82,7 @@ export async function postAccountMfaVerify(bearerAccessToken: string, code: stri
 }> {
     const response = await fetch(`${API_URL}/api/account/mfa/verify`, {
         method: 'POST',
+        credentials: API_FETCH_CREDENTIALS,
         headers: headersWithOptionalBearer(bearerAccessToken),
         body: JSON.stringify({ code }),
     });
