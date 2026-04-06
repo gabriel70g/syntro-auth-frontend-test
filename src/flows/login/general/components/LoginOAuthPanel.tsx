@@ -1,17 +1,32 @@
 import type { OAuthProviderView } from '@common/domain/auth.domain';
-import { LoginOAuthComingSoonRow } from '@flows/login/general/components/LoginOAuthComingSoonRow';
+import { OAUTH_PROVIDER_ICONS } from '@flows/login/general/data/oauth-provider-icons.data';
 
 type Props = {
     oauthProviders: Record<string, OAuthProviderView>;
     isLoading: boolean;
-    onGoogle: () => void;
+    onOAuthLogin: (provider: string) => void;
 };
 
+const DISPLAY_NAMES: Readonly<Record<string, string>> = {
+    github: 'GitHub',
+};
+
+function displayName(key: string): string {
+    return DISPLAY_NAMES[key] ?? key.charAt(0).toUpperCase() + key.slice(1);
+}
+
+function filterEnabledProviders(
+    providers: Record<string, OAuthProviderView>,
+): [string, OAuthProviderView][] {
+    return Object.entries(providers).filter(([, cfg]) => cfg.enabled && cfg.clientId);
+}
+
 /**
- * Why: Bloque OAuth separado del formulario credencial.
+ * Why: Bloque OAuth dinámico — renderiza un botón por cada proveedor que el backend reporte.
  */
-export function LoginOAuthPanel({ oauthProviders, isLoading, onGoogle }: Props) {
-    if (Object.keys(oauthProviders).length === 0) return null;
+export function LoginOAuthPanel({ oauthProviders, isLoading, onOAuthLogin }: Props) {
+    const enabled = filterEnabledProviders(oauthProviders);
+    if (enabled.length === 0) return null;
 
     return (
         <div style={{ marginTop: '1.5rem' }}>
@@ -29,10 +44,11 @@ export function LoginOAuthPanel({ oauthProviders, isLoading, onGoogle }: Props) 
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {oauthProviders.google?.enabled && oauthProviders.google.clientId ? (
+                {enabled.map(([key]) => (
                     <button
+                        key={key}
                         type="button"
-                        onClick={onGoogle}
+                        onClick={() => onOAuthLogin(key)}
                         disabled={isLoading}
                         style={{
                             width: '100%',
@@ -49,30 +65,9 @@ export function LoginOAuthPanel({ oauthProviders, isLoading, onGoogle }: Props) 
                             gap: '0.5rem',
                         }}
                     >
-                        <svg width="18" height="18" viewBox="0 0 18 18">
-                            <path
-                                fill="#4285F4"
-                                d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"
-                            />
-                            <path
-                                fill="#34A853"
-                                d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"
-                            />
-                            <path
-                                fill="#FBBC05"
-                                d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.348 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"
-                            />
-                            <path
-                                fill="#EA4335"
-                                d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z"
-                            />
-                        </svg>
-                        Continuar con Google
+                        {OAUTH_PROVIDER_ICONS[key] ?? null}
+                        Continuar con {displayName(key)}
                     </button>
-                ) : null}
-
-                {(['Microsoft', 'Apple', 'X', 'GitHub'] as const).map((name) => (
-                    <LoginOAuthComingSoonRow key={name} providerName={name} />
                 ))}
             </div>
         </div>
