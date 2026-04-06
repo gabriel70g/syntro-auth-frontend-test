@@ -29,43 +29,25 @@ export function LoginOAuthPanel({ oauthProviders, isLoading, onOAuthLogin }: Pro
     if (enabled.length === 0) return null;
 
     return (
-        <div style={{ marginTop: '1.5rem' }}>
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    marginBottom: '1rem',
-                }}
-            >
-                <div style={{ flex: 1, height: '1px', background: 'rgba(148, 163, 184, 0.2)' }} />
-                <span style={{ color: '#94a3b8', fontSize: '0.875rem' }}>o</span>
-                <div style={{ flex: 1, height: '1px', background: 'rgba(148, 163, 184, 0.2)' }} />
+        <div className="oauth-section">
+            <div className="oauth-divider">
+                <div className="oauth-divider-line" />
+                <span className="oauth-divider-text">o</span>
+                <div className="oauth-divider-line" />
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div className="oauth-list">
                 {enabled.map(([key]) => (
                     <button
                         key={key}
                         type="button"
                         onClick={() => onOAuthLogin(key)}
                         disabled={isLoading}
-                        style={{
-                            width: '100%',
-                            padding: '0.75rem',
-                            background: 'white',
-                            color: '#1f2937',
-                            border: '1px solid rgba(148, 163, 184, 0.2)',
-                            borderRadius: '8px',
-                            fontWeight: '500',
-                            cursor: isLoading ? 'not-allowed' : 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.5rem',
-                        }}
+                        className="oauth-button"
                     >
-                        {OAUTH_PROVIDER_ICONS[key] ?? null}
+                        <span className="oauth-button-icon">
+                            {OAUTH_PROVIDER_ICONS[key] ?? null}
+                        </span>
                         Continuar con {displayName(key)}
                     </button>
                 ))}

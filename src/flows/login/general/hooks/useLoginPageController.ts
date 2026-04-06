@@ -80,7 +80,7 @@ export function useLoginPageController() {
 
                 if (result.session) {
                     writeAuthSessionToStorage(result.session);
-                    window.location.href = '/dashboard';
+                    router.push('/dashboard');
                 }
             } catch {
                 setError('Error inesperado. Intenta nuevamente.');

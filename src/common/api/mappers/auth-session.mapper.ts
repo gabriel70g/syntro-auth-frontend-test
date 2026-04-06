@@ -1,5 +1,15 @@
 import type { AuthSession, User } from '@common/domain/auth.domain';
 import { decodeJwtPayload } from '@common/lib/jwt';
+import { isRecord } from '@common/api/mappers/json-guards';
+
+/**
+ * Why: Extrae accessToken de un envelope { data: { accessToken } } — útil para refresh responses.
+ */
+export function extractAccessTokenFromEnvelope(body: unknown): string | null {
+    if (!isRecord(body) || !isRecord(body.data)) return null;
+    const token = body.data.accessToken;
+    return typeof token === 'string' ? token : null;
+}
 
 /**
  * Why: Construye sesión de UI desde tokens; no conoce HTTP.

@@ -1,5 +1,6 @@
 import { API_URL, API_FETCH_CREDENTIALS, getDefaultHeaders, mergeHeaders } from '@common/lib/config';
 import { readStoredAccessToken, writeAccessToken, clearAuthSessionStorage } from '@common/lib/storage/auth-session.storage';
+import { extractAccessTokenFromEnvelope } from '@common/api/mappers/auth-session.mapper';
 
 /**
  * Why: Parseo JSON tolerante para capa HTTP.
@@ -30,20 +31,10 @@ async function doRefresh(): Promise<string | null> {
         });
         if (!res.ok) return null;
         const body = await readJsonSafe(res);
-        if (
-            body &&
-            typeof body === 'object' &&
-            'data' in body &&
-            body.data &&
-            typeof body.data === 'object' &&
-            'accessToken' in body.data &&
-            typeof (body.data as Record<string, unknown>).accessToken === 'string'
-        ) {
-            const newToken = (body.data as Record<string, unknown>).accessToken as string;
-            writeAccessToken(newToken);
-            return newToken;
-        }
-        return null;
+        const newToken = extractAccessTokenFromEnvelope(body);
+        if (!newToken) return null;
+        writeAccessToken(newToken);
+        return newToken;
     } catch {
         return null;
     }

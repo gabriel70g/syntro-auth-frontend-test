@@ -381,6 +381,74 @@
     color: #d4af37;
 }
 
+/* OAuth */
+.oauth-section {
+    margin-top: 1.5rem;
+}
+
+.oauth-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.oauth-divider-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(148, 163, 184, 0.2);
+}
+
+.oauth-divider-text {
+    color: #94a3b8;
+    font-size: 0.875rem;
+}
+
+.oauth-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.oauth-button {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: #e2e8f0;
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.oauth-button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(212, 175, 55, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.oauth-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.oauth-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.oauth-button-icon {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
     .login-card {
