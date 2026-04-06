@@ -11,6 +11,7 @@ import { mapMfaConfirmHttpToOutcome, mapMfaSetupHttpToOutcome } from '@common/ap
 import { mapUnknownToErrorMessage } from '@common/api/mappers/error-message.mapper';
 import { readStoredAccessToken } from '@common/lib/storage/auth-session.storage';
 
+
 export type AccountMfaStep = 'intro' | 'scan' | 'sync' | 'done' | 'disable' | 'disable_email_sent';
 
 /**
@@ -32,11 +33,10 @@ export function useAccountMfaSettingsController() {
     }, [router]);
 
     const startServerSetup = useCallback(async () => {
-        const token = readStoredAccessToken();
-        if (!token) return;
+        if (!readStoredAccessToken()) return;
         setLoading(true);
         setError('');
-        const { ok, body } = await postAccountMfaSetup(token);
+        const { ok, body } = await postAccountMfaSetup();
         const mapped = mapMfaSetupHttpToOutcome(ok, body);
         setLoading(false);
         if (!mapped.success || !mapped.setup) {
@@ -55,11 +55,10 @@ export function useAccountMfaSettingsController() {
                 setError('Ingresá 6 dígitos');
                 return;
             }
-            const token = readStoredAccessToken();
-            if (!token) return;
+            if (!readStoredAccessToken()) return;
             setLoading(true);
             setError('');
-            const { ok, body } = await postAccountMfaConfirmSync(token, code);
+            const { ok, body } = await postAccountMfaConfirmSync(code);
             const mapped = mapMfaConfirmHttpToOutcome(ok, body);
             setLoading(false);
             if (!mapped.success) {
@@ -74,11 +73,10 @@ export function useAccountMfaSettingsController() {
 
     const requestDisableEmail = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
-        const token = readStoredAccessToken();
-        if (!token) return;
+        if (!readStoredAccessToken()) return;
         setLoading(true);
         setError('');
-        const { ok, body } = await postAccountMfaDisableRequest(token);
+        const { ok, body } = await postAccountMfaDisableRequest();
         setLoading(false);
         if (!ok) {
             setError(mapUnknownToErrorMessage(body, 'No se pudo enviar el correo'));

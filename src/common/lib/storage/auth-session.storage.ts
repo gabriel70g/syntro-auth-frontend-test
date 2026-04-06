@@ -1,24 +1,26 @@
 import type { AuthSession } from '@common/domain/auth.domain';
 
 /**
- * Why: Efectos de persistencia aislados; el dominio y los mapeadores permanecen puros.
+ * Why: Access token solo en memoria (nunca localStorage) — más seguro contra XSS.
+ * El refresh token viaja en cookie HttpOnly gestionada por el backend.
  */
 
+let inMemoryAccessToken: string | null = null;
+
 export function writeAuthSessionToStorage(session: AuthSession): void {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem('auth_token', session.token);
-    // Refresh en cookie HttpOnly (API); no persistir en localStorage.
+    inMemoryAccessToken = session.token;
 }
 
 export function clearAuthSessionStorage(): void {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
+    inMemoryAccessToken = null;
 }
 
 export function readStoredAccessToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem('auth_token');
+    return inMemoryAccessToken;
+}
+
+export function writeAccessToken(token: string): void {
+    inMemoryAccessToken = token;
 }
 
 export function storeMfaTempToken(token: string): void {

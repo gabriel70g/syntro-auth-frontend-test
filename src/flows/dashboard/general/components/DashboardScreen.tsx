@@ -2,6 +2,7 @@
 
 import { SyntropySoftLogoCompact } from '@common/components/AuthFlowBrandMark';
 import { clearAuthSessionStorage } from '@common/lib/storage/auth-session.storage';
+import { postAuthLogout } from '@common/api/clients/auth.http.client';
 import { SECURITY_FEATURES } from '@flows/dashboard/general/data/security-features.data';
 import { useDashboardSession } from '@flows/dashboard/general/hooks/useDashboardSession';
 import { DashboardClaimRow } from '@flows/dashboard/general/components/DashboardClaimRow';
@@ -164,7 +165,8 @@ export function DashboardScreen() {
 
                 <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
+                        await postAuthLogout().catch(() => {});
                         clearAuthSessionStorage();
                         window.location.href = '/login';
                     }}

@@ -10,6 +10,7 @@ export async function postAuthLogin(body: { email: string; password: string }): 
 }> {
     const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
+        credentials: API_FETCH_CREDENTIALS,
         headers: getDefaultHeaders(),
         body: JSON.stringify(body),
     });
