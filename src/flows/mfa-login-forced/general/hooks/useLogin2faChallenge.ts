@@ -38,7 +38,7 @@ export function useLogin2faChallenge() {
             if (result.success && result.session) {
                 writeAuthSessionToStorage(result.session);
                 clearMfaTempToken();
-                window.location.href = '/dashboard';
+                router.push('/dashboard');
                 return;
             }
             setError(result.error || 'Código inválido');
@@ -47,7 +47,7 @@ export function useLogin2faChallenge() {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [router]);
 
     const handleInputChange = (index: number, value: string) => {
         if (!/^\d*$/.test(value)) return;

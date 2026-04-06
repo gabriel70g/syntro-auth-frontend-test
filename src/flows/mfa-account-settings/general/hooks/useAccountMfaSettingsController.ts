@@ -11,7 +11,6 @@ import { mapMfaConfirmHttpToOutcome, mapMfaSetupHttpToOutcome } from '@common/ap
 import { mapUnknownToErrorMessage } from '@common/api/mappers/error-message.mapper';
 import { readStoredAccessToken } from '@common/lib/storage/auth-session.storage';
 
-
 export type AccountMfaStep = 'intro' | 'scan' | 'sync' | 'done' | 'disable' | 'disable_email_sent';
 
 /**
@@ -28,7 +27,6 @@ export function useAccountMfaSettingsController() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (typeof window === 'undefined') return;
         if (!readStoredAccessToken()) router.replace('/login');
     }, [router]);
 

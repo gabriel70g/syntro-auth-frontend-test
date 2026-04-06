@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { postOAuthLogin } from '@common/api/clients/auth.http.client';
 import { mapOAuthLoginResponseBodyToResult } from '@common/api/mappers/login-result.mapper';
 import { parseOAuthCallback, validateOAuthCallback } from '@common/lib/oauth';
@@ -17,6 +18,7 @@ type Status = 'loading' | 'success' | 'error';
  * Why: Callback OAuth en static export (lee window.location).
  */
 export function useOAuthCallbackController() {
+    const router = useRouter();
     const [status, setStatus] = useState<Status>('loading');
     const [error, setError] = useState('');
 
@@ -69,7 +71,7 @@ export function useOAuthCallbackController() {
                     writeAuthSessionToStorage(result.session);
                     setStatus('success');
                     setTimeout(() => {
-                        window.location.href = '/dashboard';
+                        router.push('/dashboard');
                     }, 1000);
                     return;
                 }

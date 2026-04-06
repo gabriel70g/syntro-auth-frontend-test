@@ -55,8 +55,10 @@ export function DashboardScreen() {
                     }}
                 >
                     <p style={{ color: '#93c5fd', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}>
-                        <strong>Nota:</strong> Este frontend es un ejemplo. La validación de contraseña acepta cualquier valor no vacío{' '}
-                        <em>a propósito</em>, para probar la simplicidad del flujo.
+                        <strong>Demo:</strong> Este frontend es un ejemplo de integración con SyntroAuth.
+                        La contraseña acepta cualquier valor no vacío <em>a propósito</em> y el access token
+                        se persiste en <code style={{ fontSize: '0.8rem', background: 'rgba(59, 130, 246, 0.2)', padding: '1px 4px', borderRadius: '4px' }}>sessionStorage</code> para
+                        simplificar la demo (en producción sería solo en memoria con refresh automático).
                     </p>
                 </div>
 
