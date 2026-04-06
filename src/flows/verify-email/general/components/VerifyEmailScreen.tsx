@@ -7,6 +7,7 @@ import { mapVerifyEmailConfirmBody } from "@common/api/mappers/verify-email.mapp
 import { postAccountMfaConfirmSync } from "@common/api/clients/mfa.http.client";
 import { mapMfaConfirmHttpToOutcome } from "@common/api/mappers/mfa.mapper";
 import { downloadRecoveryCodesTxt } from "@common/lib/recovery-codes-download";
+import { writeAccessToken } from "@common/lib/storage/auth-session.storage";
 
 export function VerifyEmailScreen() {
     const searchParams = useSearchParams();
@@ -79,8 +80,8 @@ export function VerifyEmailScreen() {
         setMessage("Activando autenticación de dos factores...");
 
         try {
+            writeAccessToken(accessToken);
             const { ok, body } = await postAccountMfaConfirmSync(
-                accessToken,
                 code,
                 tenantIdFromUrl || undefined
             );
