@@ -46,9 +46,9 @@ export function AccountMfaSettingsScreen() {
                 {flow.step === 'intro' && (
                     <div>
                         <p style={{ color: '#cbd5e1', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
-                            Este asistente solo aplica con sesión iniciada. El servidor genera la semilla; tu teléfono debe
-                            mostrar el mismo código de 6 dígitos que ingresás acá para dar el alta por válida.
+                            Elegí una opción según el estado actual de tu cuenta.
                         </p>
+
                         <button
                             type="button"
                             onClick={() => void flow.startServerSetup()}
@@ -65,8 +65,31 @@ export function AccountMfaSettingsScreen() {
                                 marginBottom: '0.75rem',
                             }}
                         >
-                            {flow.loading ? 'Solicitando…' : '1. Generar semilla en el servidor'}
+                            {flow.loading ? 'Solicitando…' : 'Configurar 2FA'}
                         </button>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                flow.setError('');
+                                flow.setCode('');
+                                flow.setStep('verify');
+                            }}
+                            style={{
+                                width: '100%',
+                                padding: '0.875rem',
+                                borderRadius: '8px',
+                                border: '1px solid rgba(34, 197, 94, 0.4)',
+                                background: 'rgba(34, 197, 94, 0.1)',
+                                color: '#86efac',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                marginBottom: '0.75rem',
+                            }}
+                        >
+                            Ya tengo 2FA — Verificar código
+                        </button>
+
                         <button
                             type="button"
                             onClick={() => {
@@ -77,15 +100,16 @@ export function AccountMfaSettingsScreen() {
                                 width: '100%',
                                 padding: '0.625rem',
                                 borderRadius: '8px',
-                                border: '1px solid #475569',
-                                background: 'transparent',
-                                color: '#94a3b8',
+                                border: '1px solid rgba(239, 68, 68, 0.3)',
+                                background: 'rgba(239, 68, 68, 0.08)',
+                                color: '#fca5a5',
                                 cursor: 'pointer',
                                 fontSize: '0.875rem',
                             }}
                         >
-                            Desactivar 2FA (ya configurado)
+                            Desactivar 2FA
                         </button>
+
                         {flow.error && (
                             <p style={{ color: '#fca5a5', fontSize: '0.875rem', marginTop: '1rem' }}>{flow.error}</p>
                         )}
@@ -299,6 +323,96 @@ export function AccountMfaSettingsScreen() {
                                 Descargar .txt
                             </button>
                         </div>
+                        <button
+                            type="button"
+                            onClick={() => flow.router.push('/dashboard')}
+                            style={{
+                                width: '100%',
+                                padding: '0.875rem',
+                                borderRadius: '8px',
+                                border: 'none',
+                                fontWeight: 700,
+                                background: '#3b82f6',
+                                color: '#fff',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            Volver al panel
+                        </button>
+                    </div>
+                )}
+
+                {flow.step === 'verify' && (
+                    <form onSubmit={flow.submitVerify}>
+                        <p style={{ color: '#cbd5e1', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: 1.6 }}>
+                            Ingresá el código de 6 dígitos que muestra tu app de autenticación para verificar que 2FA
+                            funciona correctamente.
+                        </p>
+                        {flow.error && (
+                            <p style={{ color: '#fca5a5', fontSize: '0.875rem', marginBottom: '0.75rem' }}>{flow.error}</p>
+                        )}
+                        <input
+                            type="text"
+                            inputMode="numeric"
+                            autoComplete="one-time-code"
+                            value={flow.code}
+                            onChange={(e) => flow.setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                            placeholder="000000"
+                            style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                borderRadius: '8px',
+                                border: '1px solid #475569',
+                                background: '#1e293b',
+                                color: '#fff',
+                                fontSize: '1.25rem',
+                                textAlign: 'center',
+                                letterSpacing: '0.25em',
+                                marginBottom: '1rem',
+                            }}
+                        />
+                        <button
+                            type="submit"
+                            disabled={flow.loading || flow.code.length !== 6}
+                            style={{
+                                width: '100%',
+                                padding: '0.875rem',
+                                borderRadius: '8px',
+                                border: 'none',
+                                fontWeight: 700,
+                                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                                color: '#fff',
+                                cursor: flow.loading || flow.code.length !== 6 ? 'not-allowed' : 'pointer',
+                                opacity: flow.loading || flow.code.length !== 6 ? 0.7 : 1,
+                            }}
+                        >
+                            {flow.loading ? 'Verificando…' : 'Verificar código'}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                flow.setError('');
+                                flow.setStep('intro');
+                            }}
+                            style={{
+                                marginTop: '0.75rem',
+                                width: '100%',
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#94a3b8',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            Volver
+                        </button>
+                    </form>
+                )}
+
+                {flow.step === 'verify_ok' && (
+                    <div>
+                        <p style={{ color: '#86efac', fontSize: '1rem', marginBottom: '1rem' }}>
+                            Código válido — tu 2FA está funcionando correctamente.
+                        </p>
                         <button
                             type="button"
                             onClick={() => flow.router.push('/dashboard')}
