@@ -6,12 +6,13 @@ import {
     postAccountMfaConfirmSync,
     postAccountMfaDisableRequest,
     postAccountMfaSetup,
+    postAccountMfaVerify,
 } from '@common/api/clients/mfa.http.client';
 import { mapMfaConfirmHttpToOutcome, mapMfaSetupHttpToOutcome } from '@common/api/mappers/mfa.mapper';
 import { mapUnknownToErrorMessage } from '@common/api/mappers/error-message.mapper';
 import { readStoredAccessToken } from '@common/lib/storage/auth-session.storage';
 
-export type AccountMfaStep = 'intro' | 'scan' | 'sync' | 'done' | 'disable' | 'disable_email_sent';
+export type AccountMfaStep = 'intro' | 'scan' | 'sync' | 'done' | 'verify' | 'verify_ok' | 'disable' | 'disable_email_sent';
 
 /**
  * Why: Wizard 2FA desde cuenta (JWT completo); HTTP + mapeo fuera del JSX.
@@ -69,6 +70,27 @@ export function useAccountMfaSettingsController() {
         [code]
     );
 
+    const submitVerify = useCallback(
+        async (e: React.FormEvent) => {
+            e.preventDefault();
+            if (code.length !== 6) {
+                setError('Ingresá 6 dígitos');
+                return;
+            }
+            if (!readStoredAccessToken()) return;
+            setLoading(true);
+            setError('');
+            const { ok, body } = await postAccountMfaVerify(code);
+            setLoading(false);
+            if (!ok) {
+                setError(mapUnknownToErrorMessage(body, 'Código incorrecto'));
+                return;
+            }
+            setStep('verify_ok');
+        },
+        [code]
+    );
+
     const requestDisableEmail = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
         if (!readStoredAccessToken()) return;
@@ -97,6 +119,7 @@ export function useAccountMfaSettingsController() {
         router,
         startServerSetup,
         submitSync,
+        submitVerify,
         requestDisableEmail,
     };
 }
