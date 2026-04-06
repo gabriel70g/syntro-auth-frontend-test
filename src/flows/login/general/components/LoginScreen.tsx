@@ -37,7 +37,7 @@ export function LoginScreen() {
                 <LoginOAuthPanel
                     oauthProviders={c.oauthProviders}
                     isLoading={c.isLoading}
-                    onGoogle={() => c.handleOAuthLogin('google')}
+                    onOAuthLogin={c.handleOAuthLogin}
                 />
 
                 <div className="login-footer">
