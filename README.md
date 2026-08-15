@@ -29,8 +29,11 @@ listado de usuarios, estado y acciones admin (revocar / suspender / quitar) gate
 desactivar. Reutiliza la lógica de cuenta (`useAccountMfaSettingsController`, endpoints `/api/account/mfa/*`);
 solo cambia la piel y "listo" cierra + recarga la grilla.
 
-- **Regenerar** corre el setup de nuevo: emite un secreto nuevo y **pisa el anterior** (el QR viejo deja de
-  servir). Útil para *handoff*: regenerás y le pasás el QR nuevo a quien va a testear, sin baja por email.
+- **Regenerar** corre el setup de nuevo: emite un secreto nuevo que **debería pisar el anterior**.
+  ⚠️ **Bug conocido del backend (2026-08-15):** hoy syntroAuth activa el método nuevo **sin desactivar el
+  viejo** (`MfaService.EnableAsync`) y el lookup del activo es `LIMIT 1` sin `ORDER BY` → tras regenerar
+  el login puede seguir validando contra el secreto VIEJO (el QR nuevo no sirve). El **primer** enroll
+  anda perfecto. Hasta el fix del IdP, para handoff conviene **DB fresca + enroll**, no regenerate.
 - Es **autoservicio**: el botón 2FA se habilita **solo en tu fila**; las acciones admin destructivas sobre
   uno mismo siguen bloqueadas (no te podés auto-revocar).
 - Archivos: `src/flows/admin/users/components/TwoFactorModal.tsx`, `UserActionsCell.tsx`, `AdminUsersScreen.tsx`.
