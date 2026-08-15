@@ -7,9 +7,13 @@ import {
     setUserFlags,
     deleteUser,
 } from '@common/api/clients/admin-users.http.client';
+import { postAuthLogout } from '@common/api/clients/auth.http.client';
 import { statusOf, type AdminUser } from '@common/domain/admin.domain';
 import { decodeJwtPayload } from '@common/lib/jwt';
-import { readStoredAccessToken } from '@common/lib/storage/auth-session.storage';
+import {
+    clearAuthSessionStorage,
+    readStoredAccessToken,
+} from '@common/lib/storage/auth-session.storage';
 
 /**
  * Why: una acción sensible sobre un usuario. Se ejecuta SOLO tras el step-up 2FA (acr=high):
@@ -100,6 +104,13 @@ export function useAdminUsersController() {
     const toggleAction = (u: AdminUser): AdminAction =>
         statusOf(u) === 'activo' ? suspend(u) : reactivate(u);
 
+    /** Cierra la sesión y vuelve al login (para entrar con otro usuario). */
+    const logout = useCallback(async () => {
+        await postAuthLogout().catch(() => undefined);
+        clearAuthSessionStorage();
+        window.location.href = '/login';
+    }, []);
+
     return {
         users,
         isLoading,
@@ -107,6 +118,7 @@ export function useAdminUsersController() {
         role,
         selfEmail,
         reload,
+        logout,
         pending,
         setPending,
         actions: { revokeSessions, toggleAction, remove },

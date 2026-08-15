@@ -11,6 +11,36 @@
 
 .sec-header {
     margin-bottom: 2rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+.sec-header__main { min-width: 0; }
+
+.sec-session {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+.sec-session__email {
+    color: var(--color-text-dim);
+    font-size: 0.8rem;
+}
+.sec-logout {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--color-text-medium);
+    border: 1px solid var(--color-border-soft);
+    border-radius: 999px;
+    padding: 6px 16px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.sec-logout:hover {
+    border-color: var(--color-gold-glow);
+    color: var(--color-gold-soft);
 }
 
 .sec-eyebrow {

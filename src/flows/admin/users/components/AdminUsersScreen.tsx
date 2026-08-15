@@ -26,12 +26,22 @@ export function AdminUsersScreen() {
     return (
         <div className="sec-shell">
             <header className="sec-header">
-                <p className="sec-eyebrow">{BRAND.name} · consola de seguridad</p>
-                <h1 className="sec-title">Usuarios</h1>
-                <p className="sec-subtitle">
-                    Sistema nervioso de la suite — acceso para pocos. Revocar, suspender y quitar
-                    exigen 2FA fresco (step-up).
-                </p>
+                <div className="sec-header__main">
+                    <p className="sec-eyebrow">{BRAND.name} · consola de seguridad</p>
+                    <h1 className="sec-title">Usuarios</h1>
+                    <p className="sec-subtitle">
+                        Sistema nervioso de la suite — acceso para pocos. Revocar, suspender y quitar
+                        exigen 2FA fresco (step-up).
+                    </p>
+                </div>
+                {c.selfEmail && (
+                    <div className="sec-session">
+                        <span className="sec-session__email">{c.selfEmail}</span>
+                        <button className="sec-logout" onClick={() => void c.logout()}>
+                            Salir
+                        </button>
+                    </div>
+                )}
             </header>
 
             {c.isLoading && <p className="sec-hint">Cargando usuarios…</p>}
