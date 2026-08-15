@@ -8,6 +8,7 @@ interface UserActionsCellProps {
     user: AdminUser;
     isSelf: boolean;
     onView: () => void;
+    onManage2fa: () => void;
     onRevoke: () => void;
     onToggle: () => void;
     onRemove: () => void;
@@ -17,18 +18,26 @@ export const UserActionsCell = ({
     user,
     isSelf,
     onView,
+    onManage2fa,
     onRevoke,
     onToggle,
     onRemove,
 }: UserActionsCellProps) => {
     const isActive = statusOf(user) === 'activo';
-    // Sobre uno mismo no se opera (evita auto-bloqueo). Solo "Ver" queda habilitado.
+    // Sobre uno mismo NO se opera (evita auto-bloqueo): revocar/suspender/quitar quedan deshabilitados.
+    // La EXCEPCIÓN es tu propio 2FA — es autoservicio de seguridad, no una acción admin sobre otro:
+    // por eso el botón 2FA se habilita SOLO en tu fila.
     const selfLock = isSelf ? 'No podés operar sobre tu propio usuario' : undefined;
     return (
         <div className="sec-actions">
             <button className="sec-act" onClick={onView}>
                 Ver
             </button>
+            {isSelf && (
+                <button className="sec-act sec-act--2fa" onClick={onManage2fa}>
+                    {user.twoFactorEnabled ? 'Gestionar 2FA' : 'Activar 2FA'}
+                </button>
+            )}
             <button
                 className="sec-act sec-act--warn"
                 onClick={onRevoke}

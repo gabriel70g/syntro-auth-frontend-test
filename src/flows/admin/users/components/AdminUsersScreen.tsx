@@ -5,12 +5,16 @@ import { BRAND } from '@common/lib/brand';
 import { useAdminUsersController } from '@flows/admin/users/hooks/useAdminUsersController';
 import { UserRow } from '@flows/admin/users/components/UserRow';
 import { StepUpModal } from '@flows/admin/users/components/StepUpModal';
+import { TwoFactorModal } from '@flows/admin/users/components/TwoFactorModal';
 import { RestrictedAccess } from '@flows/admin/users/components/RestrictedAccess';
 import '@flows/admin/users/admin-users.css';
 
 export function AdminUsersScreen() {
     const c = useAdminUsersController();
     const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [show2fa, setShow2fa] = useState(false);
+    // Tu propio usuario en el listado (para el modal de 2FA: estado actual + email).
+    const selfUser = c.users.find((u) => u.email === c.selfEmail);
 
     // Guard: esto es para pocos. Si el rol no es admin, no se muestra nada operable.
     if (c.role !== null && c.role !== 'admin') {
@@ -68,6 +72,7 @@ export function AdminUsersScreen() {
                                     isSelf={user.email === c.selfEmail}
                                     isExpanded={expandedId === user.id}
                                     onView={() => toggleExpand(user.id)}
+                                    onManage2fa={() => setShow2fa(true)}
                                     onRevoke={() => c.setPending(c.actions.revokeSessions(user))}
                                     onToggle={() => c.setPending(c.actions.toggleAction(user))}
                                     onRemove={() => c.setPending(c.actions.remove(user))}
@@ -88,6 +93,18 @@ export function AdminUsersScreen() {
                     onClose={() => c.setPending(null)}
                     onDone={() => {
                         c.setPending(null);
+                        void c.reload();
+                    }}
+                />
+            )}
+
+            {show2fa && selfUser && (
+                <TwoFactorModal
+                    enabled={selfUser.twoFactorEnabled}
+                    email={selfUser.email}
+                    onClose={() => setShow2fa(false)}
+                    onDone={() => {
+                        setShow2fa(false);
                         void c.reload();
                     }}
                 />

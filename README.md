@@ -18,6 +18,23 @@ Este proyecto usa **validación de contraseña simplificada** (solo no vacía) *
 
 **En producción**, conviene añadir en tu propio código reglas de complejidad (longitud, mayúsculas, etc.) antes de cifrar y enviar la contraseña. Esta maqueta no las incluye a propósito.
 
+## 🛡️ Consola de seguridad (Convertix) + 2FA autoservicio
+
+Además del login/OAuth, la demo incluye una **consola de seguridad** (`/admin/users`, estilo "Diamante"):
+listado de usuarios, estado y acciones admin (revocar / suspender / quitar) gateadas por rol y con
+**step-up 2FA** en las acciones sensibles.
+
+**Manejo de 2FA propio, dentro de la grilla (no en pantalla aparte).** En **tu propia fila** hay un botón
+**"Activar 2FA" / "Gestionar 2FA"** que abre un modal Diamante con activar / **regenerar** / verificar /
+desactivar. Reutiliza la lógica de cuenta (`useAccountMfaSettingsController`, endpoints `/api/account/mfa/*`);
+solo cambia la piel y "listo" cierra + recarga la grilla.
+
+- **Regenerar** corre el setup de nuevo: emite un secreto nuevo y **pisa el anterior** (el QR viejo deja de
+  servir). Útil para *handoff*: regenerás y le pasás el QR nuevo a quien va a testear, sin baja por email.
+- Es **autoservicio**: el botón 2FA se habilita **solo en tu fila**; las acciones admin destructivas sobre
+  uno mismo siguen bloqueadas (no te podés auto-revocar).
+- Archivos: `src/flows/admin/users/components/TwoFactorModal.tsx`, `UserActionsCell.tsx`, `AdminUsersScreen.tsx`.
+
 ## 🚀 Configuración para Railway
 
 Este proyecto está **preparado para Railway** por defecto. Las URLs se configuran automáticamente:

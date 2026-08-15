@@ -15,12 +15,22 @@ interface UserRowProps {
     isSelf: boolean;
     isExpanded: boolean;
     onView: () => void;
+    onManage2fa: () => void;
     onRevoke: () => void;
     onToggle: () => void;
     onRemove: () => void;
 }
 
-export const UserRow = ({ user, isSelf, isExpanded, onView, onRevoke, onToggle, onRemove }: UserRowProps) => (
+export const UserRow = ({
+    user,
+    isSelf,
+    isExpanded,
+    onView,
+    onManage2fa,
+    onRevoke,
+    onToggle,
+    onRemove,
+}: UserRowProps) => (
     <Fragment>
         <tr>
             <td className="sec-email">
@@ -42,6 +52,7 @@ export const UserRow = ({ user, isSelf, isExpanded, onView, onRevoke, onToggle, 
                     user={user}
                     isSelf={isSelf}
                     onView={onView}
+                    onManage2fa={onManage2fa}
                     onRevoke={onRevoke}
                     onToggle={onToggle}
                     onRemove={onRemove}
