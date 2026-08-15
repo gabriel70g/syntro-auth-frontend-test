@@ -1,14 +1,31 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { fetchUsers } from '@common/api/clients/admin-users.http.client';
-import type { AdminUser } from '@common/domain/admin.domain';
+import {
+    fetchUsers,
+    revokeUser,
+    setUserFlags,
+    deleteUser,
+} from '@common/api/clients/admin-users.http.client';
+import { statusOf, type AdminUser } from '@common/domain/admin.domain';
 import { decodeJwtPayload } from '@common/lib/jwt';
 import { readStoredAccessToken } from '@common/lib/storage/auth-session.storage';
 
 /**
- * Why: estado de la consola de seguridad. Además del listado, expone el rol del que mira
- * (para el gate: esto es para pocos) y su email (para no dejar que se auto-revoque sin querer).
+ * Why: una acción sensible sobre un usuario. Se ejecuta SOLO tras el step-up 2FA (acr=high):
+ * el modal hace challenge+verify y recién ahí llama a `run()`.
+ */
+export interface AdminAction {
+    title: string;
+    operationHint: string;
+    danger: boolean;
+    confirmLabel: string;
+    run: () => Promise<{ ok: boolean }>;
+}
+
+/**
+ * Why: estado de la consola de seguridad. Expone el rol del que mira (gate: esto es para pocos),
+ * su email (para marcarlo/evitar auto-revocarse), y las acciones sensibles gateadas por 2FA.
  */
 export function useAdminUsersController() {
     const [users, setUsers] = useState<AdminUser[]>([]);
@@ -16,6 +33,7 @@ export function useAdminUsersController() {
     const [error, setError] = useState<string | null>(null);
     const [role, setRole] = useState<string | null>(null);
     const [selfEmail, setSelfEmail] = useState<string | null>(null);
+    const [pending, setPending] = useState<AdminAction | null>(null);
 
     const reload = useCallback(async () => {
         const claims = decodeJwtPayload(readStoredAccessToken() ?? '');
@@ -43,5 +61,54 @@ export function useAdminUsersController() {
         void reload();
     }, [reload]);
 
-    return { users, isLoading, error, role, selfEmail, reload };
+    // ── Constructores de acción (cada una declara su operationHint para el step-up) ──
+    const revokeSessions = (u: AdminUser): AdminAction => ({
+        title: `Revocar todas las sesiones de ${u.email}`,
+        operationHint: 'revoke_user',
+        danger: true,
+        confirmLabel: 'Revocar sesiones',
+        run: async () => ({ ok: (await revokeUser(u.id, 'consola de seguridad')).ok }),
+    });
+
+    const suspend = (u: AdminUser): AdminAction => ({
+        title: `Suspender a ${u.email}`,
+        operationHint: 'suspend_user',
+        danger: true,
+        confirmLabel: 'Suspender',
+        run: async () => ({ ok: (await setUserFlags(u.id, { isSuspended: true })).ok }),
+    });
+
+    const reactivate = (u: AdminUser): AdminAction => ({
+        title: `Reactivar a ${u.email}`,
+        operationHint: 'reactivate_user',
+        danger: false,
+        confirmLabel: 'Reactivar',
+        run: async () => ({
+            ok: (await setUserFlags(u.id, { isActive: true, isSuspended: false, isBanned: false })).ok,
+        }),
+    });
+
+    const remove = (u: AdminUser): AdminAction => ({
+        title: `Quitar a ${u.email}`,
+        operationHint: 'delete_user',
+        danger: true,
+        confirmLabel: 'Quitar usuario',
+        run: async () => ({ ok: (await deleteUser(u.id)).ok }),
+    });
+
+    /** Qué acción de estado ofrecer según el estado actual (suspender vs reactivar). */
+    const toggleAction = (u: AdminUser): AdminAction =>
+        statusOf(u) === 'activo' ? suspend(u) : reactivate(u);
+
+    return {
+        users,
+        isLoading,
+        error,
+        role,
+        selfEmail,
+        reload,
+        pending,
+        setPending,
+        actions: { revokeSessions, toggleAction, remove },
+    };
 }

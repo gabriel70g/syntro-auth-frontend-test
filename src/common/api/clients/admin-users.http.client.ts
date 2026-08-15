@@ -1,4 +1,6 @@
 import { authenticatedFetch } from '@common/api/clients/http.helpers';
+import { extractAccessTokenFromEnvelope } from '@common/api/mappers/auth-session.mapper';
+import { writeAccessToken } from '@common/lib/storage/auth-session.storage';
 import type { AdminUser } from '@common/domain/admin.domain';
 
 /**
@@ -42,4 +44,38 @@ export async function setUserFlags(
 /** Baja del usuario. Destructivo. Requiere step-up. */
 export async function deleteUser(userId: string) {
     return authenticatedFetch(`/api/users/${userId}`, { method: 'DELETE' });
+}
+
+/* ── Step-up 2FA (PEN-1): elevar a acr=high antes de una operación sensible ── */
+
+/** Pide el challenge para una operación. Devuelve el challengeToken a firmar con el 2FA. */
+export async function stepUpChallenge(
+    operationHint: string,
+): Promise<{ ok: boolean; challengeToken?: string; error?: string }> {
+    const res = await authenticatedFetch('/api/auth/step-up/challenge', {
+        method: 'POST',
+        body: JSON.stringify({ operationHint }),
+    });
+    const body = res.body as Envelope<{ challengeToken?: string }> | null;
+    return {
+        ok: res.ok,
+        challengeToken: body?.data?.challengeToken,
+        error: res.ok ? undefined : 'No se pudo iniciar el paso de 2FA.',
+    };
+}
+
+/** Verifica el código TOTP. Si OK, guarda el access token ELEVADO (acr=high) para las acciones. */
+export async function stepUpVerify(
+    challengeToken: string,
+    code: string,
+): Promise<{ ok: boolean; error?: string }> {
+    const res = await authenticatedFetch('/api/auth/step-up/verify', {
+        method: 'POST',
+        body: JSON.stringify({ challengeToken, factor: 'totp', value: code }),
+    });
+    if (res.ok) {
+        const elevated = extractAccessTokenFromEnvelope(res.body);
+        if (elevated) writeAccessToken(elevated);
+    }
+    return { ok: res.ok, error: res.ok ? undefined : 'Código inválido o vencido.' };
 }
