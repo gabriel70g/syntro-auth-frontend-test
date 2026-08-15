@@ -38,7 +38,7 @@ export function useLogin2faChallenge() {
             if (result.success && result.session) {
                 writeAuthSessionToStorage(result.session);
                 clearMfaTempToken();
-                router.push('/dashboard');
+                router.push('/admin/users');
                 return;
             }
             setError(result.error || 'Código inválido');

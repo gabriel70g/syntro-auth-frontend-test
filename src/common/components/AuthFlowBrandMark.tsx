@@ -31,6 +31,25 @@ export function AuthFlowBrandMark() {
 }
 
 /**
+ * Why: Sello de seguridad "syntropysoft" minúsculo, fijo abajo-derecha en toda la app.
+ * Convertix va al frente; syntropysoft respalda la seguridad, discreto.
+ */
+export function SecuredByBadge() {
+    return (
+        <a
+            href={SYNTROPYSOFT_ORIGIN}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="secured-badge"
+            aria-label="Seguridad por syntropysoft — abre en una pestaña nueva"
+        >
+            <Image src={LOGO} alt="" width={16} height={14} className="secured-badge__logo" />
+            <span className="secured-badge__text">syntropysoft</span>
+        </a>
+    );
+}
+
+/**
  * Why: Misma marca en cabeceras compactas (dashboard, etc.) sin el anillo del login.
  */
 export function SyntropySoftLogoCompact() {

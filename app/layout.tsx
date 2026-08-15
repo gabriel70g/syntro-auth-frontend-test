@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SyntroAuth Demo · SyntropySoft",
-  description: "Demostración de integración SyntroAuth (SyntropySoft).",
+  title: "Convertix · Acceso seguro",
+  description: "Convertix — motor de venta conversacional.",
   icons: {
     icon: "/branding/syntropysoft-logo.png",
     apple: "/branding/syntropysoft-logo.png",

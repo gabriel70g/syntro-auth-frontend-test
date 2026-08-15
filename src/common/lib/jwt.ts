@@ -14,8 +14,9 @@ export interface JwtPayload {
     sid?: string;
     /** Authentication Context Class Reference (PEN-1). "low" o "high". */
     acr?: string;
-    /** Authentication Methods References (PEN-1). Array: pwd, totp, mfa, oauth, etc. */
-    amr?: string[];
+    /** Authentication Methods References (PEN-1). syntroAuth lo emite como string ("pwd");
+     * OIDC estándar lo define como array. Toleramos ambos. */
+    amr?: string | string[];
     /** Unix timestamp del momento en que el user se autenticó (PEN-1). */
     auth_time?: number;
     /** Unix timestamp hasta cuándo dura el acr=high (PEN-1 step-up, ~5min). */

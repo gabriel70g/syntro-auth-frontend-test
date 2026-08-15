@@ -71,7 +71,7 @@ export function useOAuthCallbackController() {
                     writeAuthSessionToStorage(result.session);
                     setStatus('success');
                     setTimeout(() => {
-                        router.push('/dashboard');
+                        router.push('/admin/users');
                     }, 1000);
                     return;
                 }

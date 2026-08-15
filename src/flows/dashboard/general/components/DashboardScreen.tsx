@@ -78,7 +78,7 @@ export function DashboardScreen() {
                                         />
                                         <DashboardClaimRow
                                             label="amr (factores)"
-                                            value={claims.amr?.join(', ')}
+                                            value={Array.isArray(claims.amr) ? claims.amr.join(', ') : claims.amr}
                                             hint="PEN-1 — métodos de autenticación"
                                         />
                                         <DashboardClaimRow

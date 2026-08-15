@@ -80,7 +80,7 @@ export function useLoginPageController() {
 
                 if (result.session) {
                     writeAuthSessionToStorage(result.session);
-                    router.push('/dashboard');
+                    router.push('/admin/users');
                 }
             } catch {
                 setError('Error inesperado. Intenta nuevamente.');

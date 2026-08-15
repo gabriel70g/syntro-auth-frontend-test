@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { AuthFlowBrandMark } from '@common/components/AuthFlowBrandMark';
+import { BRAND } from '@common/lib/brand';
 import { useLoginPageController } from '@flows/login/general/hooks/useLoginPageController';
 import { LoginArtBackground } from '@flows/login/general/components/LoginArtBackground';
 import { LoginCredentialForm } from '@flows/login/general/components/LoginCredentialForm';
@@ -19,9 +19,9 @@ export function LoginScreen() {
             <LoginArtBackground />
             <div className="login-card">
                 <div className="login-header">
-                    <AuthFlowBrandMark />
-                    <h1 className="login-title">Bienvenido</h1>
-                    <p className="login-subtitle">Ingresa tus credenciales para continuar</p>
+                    <h1 className="brand-wordmark">{BRAND.name}</h1>
+                    <p className="brand-tagline">{BRAND.tagline}</p>
+                    <p className="login-subtitle">Ingresá tus credenciales para continuar</p>
                 </div>
 
                 <LoginCredentialForm
@@ -45,7 +45,7 @@ export function LoginScreen() {
                         ¿Olvidaste tu contraseña?
                     </Link>
                     <Link href="/register" className="footer-link">
-                        ¿No tienes cuenta? Regístrate
+                        ¿No tenés cuenta? Registrate
                     </Link>
                 </div>
             </div>
