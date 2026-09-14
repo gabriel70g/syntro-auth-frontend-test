@@ -8,9 +8,10 @@ import { FormField } from '@common/components/FormField';
 import { Spinner } from '@common/components/Spinner';
 import { formatApiError } from '@common/api/mappers/api-error.mapper';
 import { useTenantController } from '@flows/tenant/general/hooks/useTenantController';
+import { ApplicationsPanel } from '@flows/tenant/general/components/ApplicationsPanel';
 
 /**
- * Why: Empresa del usuario. Sin tenant: formulario de alta. Con tenant: datos y descarga del kit.
+ * Why: Empresa del usuario. Sin tenant: formulario de alta. Con tenant: datos, descarga del kit y sus aplicaciones.
  * Los errores del backend se muestran con su código.
  */
 export function TenantScreen() {
@@ -68,6 +69,7 @@ export function TenantScreen() {
                 {c.state.kind === 'owned' && (() => {
                     const tenant = c.state.tenant;
                     return (
+                        <>
                         <GlassCard variant="static" maxWidth="100%">
                             <h1 className="text-2xl font-bold heading-gradient mb-6">{tenant.name}</h1>
 
@@ -104,6 +106,8 @@ export function TenantScreen() {
                                 </button>
                             </div>
                         </GlassCard>
+                        <ApplicationsPanel tenantId={tenant.id} />
+                        </>
                     );
                 })()}
 
