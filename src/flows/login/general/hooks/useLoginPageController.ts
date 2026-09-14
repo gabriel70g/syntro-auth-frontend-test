@@ -14,7 +14,7 @@ import { storeMfaTempToken, writeAuthSessionToStorage } from '@common/lib/storag
 import { readActiveTenant, writeActiveTenant } from '@common/lib/storage/tenant.storage';
 import { getTenantByName } from '@common/api/clients/tenants.http.client';
 import { mapTenantLookupResponse } from '@common/api/mappers/tenant.mapper';
-import { formatApiError } from '@common/api/mappers/api-error.mapper';
+import { formatApiError, mapApiError } from '@common/api/mappers/api-error.mapper';
 import { homePathForRole } from '@common/lib/home-path';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -95,7 +95,9 @@ export function useLoginPageController() {
                 }
 
                 if (!result.success) {
-                    setError(result.error || 'Error al iniciar sesión');
+                    // Con envelope de error se muestra el código del backend (RATE_LIMIT_EXCEEDED, UNAUTHORIZED…).
+                    const apiError = mapApiError(0, body, result.error || 'Error al iniciar sesión');
+                    setError(apiError.code === 'NETWORK_ERROR' ? apiError.message : formatApiError(apiError));
                     return;
                 }
 
