@@ -82,7 +82,7 @@ export function LoginCredentialForm({
                         value={credentials.email}
                         onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
                         className="form-input"
-                        placeholder="demo@convertix.app"
+                        placeholder="vos@tuempresa.com"
                         disabled={isLoading}
                         autoComplete="email"
                     />

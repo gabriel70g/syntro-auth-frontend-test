@@ -18,7 +18,7 @@ Este proyecto usa **validación de contraseña simplificada** (solo no vacía) *
 
 **En producción**, conviene añadir en tu propio código reglas de complejidad (longitud, mayúsculas, etc.) antes de cifrar y enviar la contraseña. Esta maqueta no las incluye a propósito.
 
-## 🛡️ Consola de seguridad (Convertix) + 2FA autoservicio
+## 🛡️ Consola de seguridad + 2FA autoservicio
 
 Además del login/OAuth, la demo incluye una **consola de seguridad** (`/admin/users`, estilo "Diamante"):
 listado de usuarios, estado y acciones admin (revocar / suspender / quitar) gateadas por rol y con

@@ -32,7 +32,7 @@ export function AuthFlowBrandMark() {
 
 /**
  * Why: Sello de seguridad "syntropysoft" minúsculo, fijo abajo-derecha en toda la app.
- * Convertix va al frente; syntropysoft respalda la seguridad, discreto.
+ * SyntroAuth va al frente; syntropysoft respalda la seguridad, discreto.
  */
 export function SecuredByBadge() {
     return (

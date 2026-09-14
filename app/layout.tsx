@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Convertix · Acceso seguro",
-  description: "Convertix — motor de venta conversacional.",
+  title: "SyntroAuth · Seguridad grado bancario para tu login",
+  description: "Un solo login para todas tus aplicaciones. Si tenés varios sistemas, tus usuarios entran una vez y se mueven entre ellos como si fueran uno solo.",
   icons: {
     icon: "/branding/syntropysoft-logo.png",
     apple: "/branding/syntropysoft-logo.png",
