@@ -43,22 +43,21 @@ export function RegisterFormFields({
                 )}
 
                 <div className="form-group">
-                    <label htmlFor="name" className="form-label">
-                        Nombre Completo
+                    <label htmlFor="companyName" className="form-label">
+                        Nombre de la empresa
                     </label>
                     <div className="input-wrapper">
                         <svg className="input-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                         <input
-                            id="name"
+                            id="companyName"
                             type="text"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            value={formData.companyName}
+                            onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                             className="form-input"
-                            placeholder="Juan Pérez"
                             disabled={isLoading}
-                            autoComplete="name"
+                            autoComplete="organization"
                         />
                     </div>
                 </div>

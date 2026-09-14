@@ -11,6 +11,11 @@ import { mapOAuthConfigBodyToProviders } from '@common/api/mappers/oauth-config.
 import { encryptPassword } from '@common/lib/crypto';
 import { startOAuthRedirect } from '@common/lib/oauth-redirect';
 import { storeMfaTempToken, writeAuthSessionToStorage } from '@common/lib/storage/auth-session.storage';
+import { readActiveTenant, writeActiveTenant } from '@common/lib/storage/tenant.storage';
+import { getTenantByName } from '@common/api/clients/tenants.http.client';
+import { mapTenantLookupResponse } from '@common/api/mappers/tenant.mapper';
+import { formatApiError } from '@common/api/mappers/api-error.mapper';
+import { homePathForRole } from '@common/lib/home-path';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -19,13 +24,15 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  */
 export function useLoginPageController() {
     const router = useRouter();
-    const [credentials, setCredentials] = useState<AuthCredentials>({ email: '', password: '' });
+    const [credentials, setCredentials] = useState<AuthCredentials>({ email: '', password: '', tenantName: '' });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [oauthProviders, setOauthProviders] = useState<Record<string, OAuthProviderView>>({});
 
     useEffect(() => {
+        const active = readActiveTenant();
+        if (active) setCredentials((c) => ({ ...c, tenantName: active.name }));
         void (async () => {
             const { ok, body } = await getOAuthConfig();
             if (ok) setOauthProviders(mapOAuthConfigBodyToProviders(body));
@@ -56,6 +63,20 @@ export function useLoginPageController() {
 
             setIsLoading(true);
             try {
+                // syntroAuth busca al usuario dentro del tenant del header: resolverlo primero.
+                const tenantName = credentials.tenantName.trim();
+                if (!tenantName) {
+                    writeActiveTenant(null);
+                } else if (readActiveTenant()?.name !== tenantName) {
+                    const lookup = await getTenantByName(tenantName);
+                    const tenant = mapTenantLookupResponse(lookup.status, lookup.body);
+                    if (tenant.kind === 'error') {
+                        setError(formatApiError(tenant.error));
+                        return;
+                    }
+                    writeActiveTenant({ id: tenant.id, name: tenant.name });
+                }
+
                 const encrypted = await encryptPassword(credentials.password);
                 const { ok, body } = await postAuthLogin({
                     email: credentials.email,
@@ -80,7 +101,7 @@ export function useLoginPageController() {
 
                 if (result.session) {
                     writeAuthSessionToStorage(result.session);
-                    router.push('/admin/users');
+                    router.push(homePathForRole(result.session.user.role));
                 }
             } catch {
                 setError('Error inesperado. Intenta nuevamente.');

@@ -40,7 +40,7 @@ async function doRefresh(): Promise<string | null> {
     }
 }
 
-function refreshAccessToken(): Promise<string | null> {
+export function refreshAccessToken(): Promise<string | null> {
     if (!refreshPromise) {
         refreshPromise = doRefresh().finally(() => {
             refreshPromise = null;

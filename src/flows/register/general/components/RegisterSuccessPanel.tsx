@@ -1,11 +1,11 @@
 import Link from 'next/link';
 
-type Props = { email: string };
+type Props = { email: string; tenantName: string };
 
 /**
  * Why: Estado final registro (recordatorio verificación email).
  */
-export function RegisterSuccessPanel({ email }: Props) {
+export function RegisterSuccessPanel({ email, tenantName }: Props) {
     return (
         <div className="login-card text-center animate-in fade-in zoom-in duration-500">
             <div className="mb-6 flex justify-center">
@@ -28,6 +28,10 @@ export function RegisterSuccessPanel({ email }: Props) {
             <p className="text-neutral-400 mb-6 leading-relaxed">
                 Hemos enviado un enlace de confirmación a <br />
                 <span className="text-white font-medium">{email}</span>
+            </p>
+
+            <p className="text-neutral-400 mb-6 leading-relaxed">
+                Empresa: <span className="text-white font-medium">{tenantName}</span>
             </p>
 
             <div className="bg-neutral-900/50 p-4 rounded-lg border border-neutral-800 mb-8 text-sm text-neutral-500">
