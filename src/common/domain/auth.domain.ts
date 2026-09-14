@@ -12,12 +12,15 @@ export interface User {
 export interface AuthCredentials {
     readonly email: string;
     readonly password: string;
+    /** Nombre de la empresa (tenant). Vacío = tenant default. */
+    readonly tenantName: string;
 }
 
 export interface RegisterData {
     readonly email: string;
     readonly password: string;
-    readonly name: string;
+    /** Nombre de la empresa: syntroAuth crea el tenant y deja al usuario como dueño. */
+    readonly companyName: string;
 }
 
 export interface AuthSession {

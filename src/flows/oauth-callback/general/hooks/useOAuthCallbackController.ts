@@ -6,6 +6,7 @@ import { postOAuthLogin } from '@common/api/clients/auth.http.client';
 import { mapOAuthLoginResponseBodyToResult } from '@common/api/mappers/login-result.mapper';
 import { parseOAuthCallback, validateOAuthCallback } from '@common/lib/oauth';
 import { getRedirectUri } from '@common/lib/config';
+import { homePathForRole } from '@common/lib/home-path';
 import {
     readAndClearOAuthRedirectUri,
     storeMfaTempToken,
@@ -70,8 +71,9 @@ export function useOAuthCallbackController() {
                 if (result.session) {
                     writeAuthSessionToStorage(result.session);
                     setStatus('success');
+                    const destination = homePathForRole(result.session.user.role);
                     setTimeout(() => {
-                        router.push('/admin/users');
+                        router.push(destination);
                     }, 1000);
                     return;
                 }

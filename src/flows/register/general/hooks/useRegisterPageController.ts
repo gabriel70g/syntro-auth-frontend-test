@@ -2,32 +2,33 @@
 
 import { useCallback, useState } from 'react';
 import type { RegisterData } from '@common/domain/auth.domain';
-import { postCreateUser } from '@common/api/clients/users.http.client';
-import { postAuthLogin } from '@common/api/clients/auth.http.client';
-import { mapCreateUserResponseToOutcome } from '@common/api/mappers/register-result.mapper';
-import { mapLoginResponseBodyToResult } from '@common/api/mappers/login-result.mapper';
+import { postRegisterTenant } from '@common/api/clients/tenants.http.client';
+import { mapRegisterTenantResponse } from '@common/api/mappers/tenant.mapper';
+import { formatApiError } from '@common/api/mappers/api-error.mapper';
 import { encryptPassword } from '@common/lib/crypto';
 import { validatePassword } from '@common/lib/password-validation';
-import { writeAuthSessionToStorage } from '@common/lib/storage/auth-session.storage';
+import { writeActiveTenant } from '@common/lib/storage/tenant.storage';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * Why: Registro → login automático; mapeo fuera del JSX.
+ * Why: Registro = empresa (tenant) + usuario dueño en una sola llamada. Sin login automático:
+ * syntroAuth exige verificar el email antes del primer login.
  */
 export function useRegisterPageController() {
-    const [formData, setFormData] = useState<RegisterData>({ email: '', password: '', name: '' });
+    const [formData, setFormData] = useState<RegisterData>({ email: '', password: '', companyName: '' });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [success, setSuccess] = useState(false);
+    const [registeredTenantName, setRegisteredTenantName] = useState('');
 
     const handleSubmit = useCallback(
         async (e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
             setError('');
 
-            if (!formData.email.trim() || !formData.password.trim() || !formData.name.trim()) {
+            if (!formData.email.trim() || !formData.password.trim() || !formData.companyName.trim()) {
                 setError('Por favor completa todos los campos');
                 return;
             }
@@ -44,24 +45,21 @@ export function useRegisterPageController() {
 
             setIsLoading(true);
             try {
-                const enc = await encryptPassword(formData.password);
-                const created = await postCreateUser({ email: formData.email, password: enc });
-                const createOutcome = mapCreateUserResponseToOutcome(created.ok, created.body);
-                if (createOutcome.kind === 'error') {
-                    setError(createOutcome.message);
+                const encrypted = await encryptPassword(formData.password);
+                const http = await postRegisterTenant({
+                    tenantName: formData.companyName.trim(),
+                    email: formData.email.trim(),
+                    password: encrypted,
+                });
+                const outcome = mapRegisterTenantResponse(http.status, http.body);
+                if (outcome.kind === 'error') {
+                    setError(formatApiError(outcome.error));
                     return;
                 }
 
-                const enc2 = await encryptPassword(formData.password);
-                const loginHttp = await postAuthLogin({ email: formData.email, password: enc2 });
-                const loginResult = mapLoginResponseBodyToResult(loginHttp.ok, loginHttp.body);
-
-                if (!loginResult.success || !loginResult.session) {
-                    setError(loginResult.error || 'Error al iniciar sesión tras registro');
-                    return;
-                }
-
-                writeAuthSessionToStorage(loginResult.session);
+                // El próximo login de este navegador va contra la empresa recién creada.
+                writeActiveTenant({ id: outcome.tenantId, name: outcome.tenantName });
+                setRegisteredTenantName(outcome.tenantName);
                 setSuccess(true);
             } catch {
                 setError('Error inesperado. Intenta nuevamente.');
@@ -80,6 +78,7 @@ export function useRegisterPageController() {
         showPassword,
         setShowPassword,
         success,
+        registeredTenantName,
         handleSubmit,
     };
 }

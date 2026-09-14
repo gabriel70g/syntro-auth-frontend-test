@@ -2,6 +2,8 @@
  * Why: Config y headers base; sin lógica de negocio.
  */
 
+import { readActiveTenant } from '@common/lib/storage/tenant.storage';
+
 export const API_URL =
     (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_URL) ||
     'https://syntroauth-production.up.railway.app';
@@ -26,7 +28,7 @@ export function getRedirectUri(): string {
 export function getDefaultHeaders(): Record<string, string> {
     return {
         'Content-Type': 'application/json',
-        'X-Tenant-Id': DEFAULT_TENANT_ID,
+        'X-Tenant-Id': readActiveTenant()?.id ?? DEFAULT_TENANT_ID,
     };
 }
 

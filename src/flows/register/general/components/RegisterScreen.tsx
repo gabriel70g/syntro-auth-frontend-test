@@ -13,7 +13,7 @@ export function RegisterScreen() {
         <div className="login-container">
             <LoginArtBackground />
             {c.success ? (
-                <RegisterSuccessPanel email={c.formData.email} />
+                <RegisterSuccessPanel email={c.formData.email} tenantName={c.registeredTenantName} />
             ) : (
                 <RegisterFormFields
                     formData={c.formData}

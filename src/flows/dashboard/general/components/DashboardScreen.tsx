@@ -140,6 +140,15 @@ export function DashboardScreen() {
 
                 <div className="mb-5 w-full">
                     <a
+                        href="/tenant"
+                        className="block text-center px-4 py-3 rounded-xl border border-[var(--color-border-soft)] text-[var(--color-info-fg)] no-underline text-base font-semibold hover:border-[var(--color-info-accent)] hover:bg-[var(--color-surface-input)] transition-colors"
+                    >
+                        Empresa y kit de integración
+                    </a>
+                </div>
+
+                <div className="mb-5 w-full">
+                    <a
                         href="/settings/security/mfa"
                         className="block text-center px-4 py-3 rounded-xl border border-[var(--color-border-soft)] text-[var(--color-info-fg)] no-underline text-base font-semibold hover:border-[var(--color-info-accent)] hover:bg-[var(--color-surface-input)] transition-colors"
                     >
