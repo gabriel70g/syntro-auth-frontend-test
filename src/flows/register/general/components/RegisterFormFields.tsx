@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { AuthFlowBrandMark } from '@common/components/AuthFlowBrandMark';
 import type { RegisterData } from '@common/domain/auth.domain';
+import { BRAND } from '@common/lib/brand';
 
 type Props = {
     formData: RegisterData;
@@ -29,6 +30,7 @@ export function RegisterFormFields({
             <div className="login-header">
                 <AuthFlowBrandMark />
                 <h1 className="login-title">Crear Cuenta</h1>
+                <p className="brand-pitch">{BRAND.pitch}</p>
                 <p className="login-subtitle">Completa tus datos para registrarte</p>
             </div>
 
