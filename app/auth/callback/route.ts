@@ -1,4 +1,5 @@
-import { NextResponse, type NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { redirectResponse } from '@server/redirect';
 import { homePathForRole } from '@common/lib/home-path';
 import { callBackend, clientHeaders, readJson, refreshFromSetCookie } from '@server/backend';
 import { appOrigin, defaultTenantId } from '@server/config';
@@ -14,9 +15,8 @@ import { callbackUrl, decodeOAuthState, statesMatch } from '@server/oauth';
  */
 export async function GET(req: NextRequest) {
     const origin = appOrigin();
-    const base = origin ?? req.nextUrl.origin;
     const redirect = (path: string) => {
-        const res = NextResponse.redirect(new URL(path, base), 303);
+        const res = redirectResponse(path, 303);
         clearCookie(res, COOKIE.oauth); // un solo uso, salga bien o mal
         return res;
     };

@@ -180,6 +180,21 @@ RAILPACK, y aun así los logs de build del deploy `c8b4c35b` (2026-09-15) ejecut
 (`[builder 7/7]`, `COPY nginx.conf`). Lo que manda es el `Dockerfile` de la raíz, no la config. Railway inyecta
 `PORT` y `server.js` lo respeta.
 
+**En los route handlers, `req.nextUrl.origin` es el origen interno del contenedor.** El servidor standalone escucha en
+`HOSTNAME=0.0.0.0` y `PORT=8080`. Por eso, detrás de Railway, `req.nextUrl.origin` vale `http(s)://0.0.0.0:8080` y
+no el dominio público.
+
+- Verificado en producción el 2026-09-15: sin `APP_ORIGIN`, "Continuar con Google" redirigía a
+  `https://0.0.0.0:8080/login?error=oauth_config`.
+- Reproducido en rojo en local con la imagen previa al fix.
+
+❌ NEVER armar una redirección de un route handler con `req.nextUrl.origin`. ✅ ALWAYS usar `redirectResponse`
+(`src/server/redirect.ts`): arma la URL absoluta con `APP_ORIGIN` y, si la variable falta, manda una `Location` relativa.
+
+**Excepción: `proxy.ts`.** En el proxy, `req.nextUrl` sí trae el host del pedido. Además, una `Location` relativa armada
+a mano hace que el proxy tire `ERR_INVALID_URL` y responda 500. Verificado con la imagen sin `APP_ORIGIN`: `/tenant` → 500.
+Por eso el proxy usa `NextResponse.redirect` con `appOrigin() ?? req.nextUrl.origin`.
+
 **La IP que ve el backend es la del servidor de Next.** El BFF reenvía `X-Forwarded-For`, pero el backend no la
 usa sin `KnownNetworks` en `ForwardedHeaders` (`syntroAuth/src/SyntroAuth.Api/Program.cs`). Afecta rate limit y
 binding de IP. Ya pasaba antes con el proxy de Railway: fichado como pendiente del backend (M1–M3).
