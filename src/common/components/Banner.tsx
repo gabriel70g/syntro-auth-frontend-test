@@ -27,7 +27,7 @@ const OVERRIDE_FG: Record<NonNullable<BannerProps['variant']>, string> = {
     error: '',
     info: '',
     success: 'text-[var(--color-success-fg-soft)]',
-    warning: 'text-yellow-300',
+    warning: 'text-[var(--color-warn-fg)]',
 };
 
 export function Banner({

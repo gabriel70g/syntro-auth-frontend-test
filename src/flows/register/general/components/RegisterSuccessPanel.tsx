@@ -10,7 +10,7 @@ export function RegisterSuccessPanel({ email, tenantName }: Props) {
         <div className="login-card text-center animate-in fade-in zoom-in duration-500">
             <div className="mb-6 flex justify-center">
                 <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center border border-blue-500/20">
-                    <svg className="w-10 h-10 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-10 h-10 text-blue-700 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -21,17 +21,17 @@ export function RegisterSuccessPanel({ email, tenantName }: Props) {
                 </div>
             </div>
 
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-neutral-400 bg-clip-text text-transparent mb-2">
+            <h2 className="text-2xl font-bold text-[var(--color-text-strong)] mb-2">
                 ¡Revisa tu correo!
             </h2>
 
             <p className="text-[var(--color-text-muted)] mb-6 leading-relaxed">
                 Hemos enviado un enlace de confirmación a <br />
-                <span className="text-white font-medium">{email}</span>
+                <span className="text-[var(--color-text-strong)] font-medium">{email}</span>
             </p>
 
             <p className="text-[var(--color-text-muted)] mb-6 leading-relaxed">
-                Empresa: <span className="text-white font-medium">{tenantName}</span>
+                Empresa: <span className="text-[var(--color-text-strong)] font-medium">{tenantName}</span>
             </p>
 
             <div className="bg-[var(--color-surface-card-strong)]/50 p-4 rounded-lg border border-[var(--color-border-soft)] mb-8 text-sm text-[var(--color-text-dim)]">
@@ -44,7 +44,7 @@ export function RegisterSuccessPanel({ email, tenantName }: Props) {
 
             <Link
                 href="/login"
-                className="block w-full bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface-raised-hover)] text-white font-medium py-3 rounded-lg transition-colors border border-[var(--color-border-soft)]"
+                className="block w-full bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface-raised-hover)] text-[var(--color-text-strong)] font-medium py-3 rounded-lg transition-colors border border-[var(--color-border-soft)]"
             >
                 Volver al Inicio
             </Link>

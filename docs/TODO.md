@@ -120,3 +120,18 @@
     - Piso de 12 px para el texto; sin itálica en las aclaraciones.
   - **Verificado** en la imagen local sin sesión (login, registro, baja de 2FA, verify-email): la consola no mostró errores.
   - **Sin verificar en navegador:** dashboard, admin, empresa y 2FA de cuenta, que piden sesión.
+- 2026-09-15 — **Modo claro.** Decisión del usuario: sigue al sistema, se puede fijar con un selector, arranca en
+  claro si no hay preferencia, y se hace ahora sobre las pantallas actuales.
+  - **Tokens:** cada token es `light-dark(claro, oscuro)` y `color-scheme` elige el modo.
+  - **Selector:** Sistema / Claro / Oscuro, abajo a la izquierda, con `aria-pressed`. Guarda la cookie `sa_theme`
+    y el servidor pinta `data-theme` en `<html>`, sin parpadeo.
+  - **Paleta clara:** marfil con oro profundo. El oro de la marca como texto sobre blanco daba ~2:1.
+  - **Colores literales pasados a tokens:** verdes/ámbar/rojos de 2FA, `#fff` sobre fondos grises, blanco de los
+    títulos con degradé, etiquetas del dashboard y verify-email (con `dark:`). Solo quedan blancos sobre azul, verde
+    o rojo sólidos y el fondo del QR.
+  - **Verificación repetible:** `scripts/check-contrast.py` controla AA para los dos modos y va en CI. Encontró
+    `gold-soft` (4.13) y `ok-fg` (4.01) en claro, que se corrigieron.
+  - **Verificado en la imagen local:** los tres modos del selector, la persistencia tras recargar, el modo sistema
+    con el sistema emulado oscuro, y 6 rutas sin sesión sin errores de render.
+  - **Sin verificar en navegador:** las pantallas con sesión.
+  - **Copy nuevo:** las etiquetas "Sistema", "Claro" y "Oscuro".
