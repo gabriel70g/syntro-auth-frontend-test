@@ -21,7 +21,8 @@
     "paths": {
       "@/*": ["./*"],
       "@common/*": ["./src/common/*"],
-      "@flows/*": ["./src/flows/*"]
+      "@flows/*": ["./src/flows/*"],
+      "@server/*": ["./src/server/*"]
     }
   },
   "include": [

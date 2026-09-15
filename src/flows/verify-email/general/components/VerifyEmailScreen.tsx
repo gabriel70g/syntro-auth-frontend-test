@@ -1,26 +1,28 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { postVerifyEmailConfirm } from "@common/api/clients/verification.http.client";
 import { mapVerifyEmailConfirmBody } from "@common/api/mappers/verify-email.mapper";
 import { postAccountMfaConfirmSync } from "@common/api/clients/mfa.http.client";
 import { mapMfaConfirmHttpToOutcome } from "@common/api/mappers/mfa.mapper";
 import { downloadRecoveryCodesTxt } from "@common/lib/recovery-codes-download";
-import { writeAccessToken } from "@common/lib/storage/auth-session.storage";
+import { homePathForRole } from "@common/lib/home-path";
 
-export function VerifyEmailScreen() {
-    const searchParams = useSearchParams();
-    const token = searchParams.get("token");
-    const tenantIdFromUrl = searchParams.get("tenantId");
+/**
+ * Why: confirma el email con el token del link. El token lo guardó el servidor en una cookie HttpOnly al abrir el
+ * link (la URL ya no lo tiene); `hasToken` dice si esa cookie está. Al confirmar, el BFF deja la sesión en cookies.
+ */
+export function VerifyEmailScreen({ hasToken }: { hasToken: boolean }) {
     const router = useRouter();
 
     // Machine State: "verifying" | "verified_setup_needed" | "enabling" | "complete_recovery_codes" | "error"
-    const [state, setState] = useState<string>("verifying");
+    const [state, setState] = useState<string>(hasToken ? "verifying" : "error");
 
-    const [message, setMessage] = useState("Verificando tu correo electrónico...");
+    const [message, setMessage] = useState(hasToken ? "Verificando tu correo electrónico..." : "Token no válido o faltante.");
     const [twoFactorSecret, setTwoFactorSecret] = useState<string | null>(null);
-    const [accessToken, setAccessToken] = useState<string | null>(null);
+    const [authenticated, setAuthenticated] = useState(false);
+    const [homePath, setHomePath] = useState(homePathForRole(undefined));
 
     // Inputs
     const [code, setCode] = useState("");
@@ -29,48 +31,38 @@ export function VerifyEmailScreen() {
     const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
 
     useEffect(() => {
-        if (!token) {
-            setState("error");
-            setMessage("Token no válido o faltante.");
-            return;
-        }
+        if (!hasToken) return;
 
         const verifyEmail = async () => {
-            try {
-                const { ok, body } = await postVerifyEmailConfirm(token, tenantIdFromUrl || undefined);
-                if (!ok) {
-                    throw new Error("Error al verificar email");
-                }
-                const v = mapVerifyEmailConfirmBody(body);
-
-                if (v.accessToken) {
-                    setAccessToken(v.accessToken);
-                }
-
-                if (v.twoFactorEnabled) {
-                    setState("success_no_action");
-                    setMessage("¡Correo verificado exitosamente!");
-                } else if (v.twoFactorSecret) {
-                    setTwoFactorSecret(v.twoFactorSecret);
-                    setState("verified_setup_needed");
-                    setMessage("Correo verificado. Ahora configuremos tu seguridad.");
-                } else {
-                    setState("success_no_action");
-                    setMessage("¡Correo verificado exitosamente!");
-                }
-            } catch (err: unknown) {
-                console.error(err);
+            const { ok, body } = await postVerifyEmailConfirm();
+            if (!ok) {
                 setState("error");
                 setMessage("Hubo un problema verificando tu correo. El token podría haber expirado.");
+                return;
+            }
+            const v = mapVerifyEmailConfirmBody(body);
+            setAuthenticated(v.authenticated);
+            setHomePath(homePathForRole(v.role));
+
+            if (v.twoFactorEnabled) {
+                setState("success_no_action");
+                setMessage("¡Correo verificado exitosamente!");
+            } else if (v.twoFactorSecret) {
+                setTwoFactorSecret(v.twoFactorSecret);
+                setState("verified_setup_needed");
+                setMessage("Correo verificado. Ahora configuremos tu seguridad.");
+            } else {
+                setState("success_no_action");
+                setMessage("¡Correo verificado exitosamente!");
             }
         };
 
-        verifyEmail();
-    }, [token, tenantIdFromUrl]);
+        void verifyEmail();
+    }, [hasToken]);
 
     const handleEnableMfa = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!accessToken) {
+        if (!authenticated) {
             alert("Error de sesión: No se recibió token de acceso. Vuelve a iniciar sesión.");
             router.push("/login");
             return;
@@ -79,25 +71,17 @@ export function VerifyEmailScreen() {
         setState("enabling");
         setMessage("Activando autenticación de dos factores...");
 
-        try {
-            writeAccessToken(accessToken);
-            const { ok, body } = await postAccountMfaConfirmSync(
-                code,
-                tenantIdFromUrl || undefined
-            );
-            const outcome = mapMfaConfirmHttpToOutcome(ok, body);
-            if (!outcome.success) {
-                throw new Error(outcome.error || "Código incorrecto o error al activar 2FA.");
-            }
-
-            setRecoveryCodes(outcome.recoveryCodes ?? []);
-            setState("complete_recovery_codes");
-            setMessage("¡2FA Activado Exitosamente!");
-        } catch (err: unknown) {
-            console.error(err);
+        const { ok, body } = await postAccountMfaConfirmSync(code);
+        const outcome = mapMfaConfirmHttpToOutcome(ok, body);
+        if (!outcome.success) {
             setState("verified_setup_needed");
-            alert(err instanceof Error ? err.message : "Error al activar 2FA");
+            alert(outcome.error || "Código incorrecto o error al activar 2FA.");
+            return;
         }
+
+        setRecoveryCodes(outcome.recoveryCodes ?? []);
+        setState("complete_recovery_codes");
+        setMessage("¡2FA Activado Exitosamente!");
     };
 
     const copyToClipboard = (text: string) => {
@@ -230,10 +214,10 @@ export function VerifyEmailScreen() {
                             </div>
                             <button
                                 type="button"
-                                onClick={() => router.push("/dashboard")}
+                                onClick={() => router.push(homePath)}
                                 className="w-full bg-white text-black hover:bg-gray-200 font-bold py-3 rounded-lg transition-colors"
                             >
-                                Ir al dashboard
+                                Continuar
                             </button>
                         </div>
                     </div>

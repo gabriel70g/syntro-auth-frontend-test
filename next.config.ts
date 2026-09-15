@@ -2,11 +2,14 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
-  output: 'export',
+  // Servidor Node propio (BFF): el Dockerfile corre .next/standalone/server.js.
+  output: 'standalone',
   // Resolver warning de múltiples lockfiles: especificar el root del proyecto
   outputFileTracingRoot: path.join(__dirname),
+  poweredByHeader: false,
   images: {
-    unoptimized: true, // Required for static export unless using external loader
+    // Solo el logo local: sin optimizador no se expone /_next/image.
+    unoptimized: true,
   },
 };
 

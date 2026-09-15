@@ -8,12 +8,8 @@ import {
     deleteUser,
 } from '@common/api/clients/admin-users.http.client';
 import { postAuthLogout } from '@common/api/clients/auth.http.client';
+import { getSessionClaims } from '@common/api/clients/session.http.client';
 import { statusOf, type AdminUser } from '@common/domain/admin.domain';
-import { decodeJwtPayload } from '@common/lib/jwt';
-import {
-    clearAuthSessionStorage,
-    readStoredAccessToken,
-} from '@common/lib/storage/auth-session.storage';
 
 /**
  * Why: una acción sensible sobre un usuario. Se ejecuta SOLO tras el step-up 2FA (acr=high):
@@ -40,12 +36,11 @@ export function useAdminUsersController() {
     const [pending, setPending] = useState<AdminAction | null>(null);
 
     const reload = useCallback(async () => {
-        const claims = decodeJwtPayload(readStoredAccessToken() ?? '');
-        setRole(claims?.role ?? null);
-        setSelfEmail(claims?.email ?? null);
         setIsLoading(true);
         setError(null);
-        const res = await fetchUsers();
+        const [claims, res] = await Promise.all([getSessionClaims(), fetchUsers()]);
+        setRole(claims?.role ?? null);
+        setSelfEmail(claims?.email ?? null);
         if (!res.ok) {
             setError(
                 res.status === 403
@@ -60,7 +55,7 @@ export function useAdminUsersController() {
     }, []);
 
     useEffect(() => {
-        // Carga on-mount (mismo patrón que useDashboardSession); el setState va tras el await.
+        // Carga on-mount; el setState de `reload` antes del await es el mismo estado inicial.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         void reload();
     }, [reload]);
@@ -106,9 +101,8 @@ export function useAdminUsersController() {
 
     /** Cierra la sesión y vuelve al login (para entrar con otro usuario). */
     const logout = useCallback(async () => {
-        await postAuthLogout().catch(() => undefined);
-        clearAuthSessionStorage();
-        window.location.href = '/login';
+        await postAuthLogout();
+        window.location.assign(new URL('/login', window.location.origin));
     }, []);
 
     return {

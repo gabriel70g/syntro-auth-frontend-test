@@ -1,102 +1,40 @@
-import { API_URL, API_FETCH_CREDENTIALS, getDefaultHeaders } from '@common/lib/config';
-import { readJsonSafe } from '@common/api/clients/http.helpers';
+import { bffFetch } from '@common/api/clients/http.helpers';
 
 /**
- * Why: Solo transporte HTTP; el mapeo ocurre fuera (puro).
+ * Why: Solo transporte HTTP; el mapeo ocurre fuera (puro). Los tokens que emite el backend los guarda el BFF en
+ * cookies HttpOnly: estas respuestas llegan sin tokens.
  */
-export async function postAuthLogin(body: { email: string; password: string }): Promise<{
-    ok: boolean;
-    body: unknown;
-}> {
-    const response = await fetch(`${API_URL}/api/auth/login`, {
-        method: 'POST',
-        credentials: API_FETCH_CREDENTIALS,
-        headers: getDefaultHeaders(),
-        body: JSON.stringify(body),
-    });
-    return { ok: response.ok, body: await readJsonSafe(response) };
+
+const post = async (path: string, body: unknown): Promise<{ ok: boolean; body: unknown }> => {
+    const res = await bffFetch(path, { method: 'POST', body: JSON.stringify(body) });
+    return { ok: res.ok, body: res.body };
+};
+
+export function postAuthLogin(body: { email: string; password: string }) {
+    return post('/api/auth/login', body);
 }
 
-export async function postOAuthLogin(body: {
-    provider: string;
-    code: string;
-    redirectUri: string;
-}): Promise<{ ok: boolean; body: unknown }> {
-    const response = await fetch(`${API_URL}/api/auth/oauth/login`, {
-        method: 'POST',
-        credentials: API_FETCH_CREDENTIALS,
-        headers: getDefaultHeaders(),
-        body: JSON.stringify(body),
-    });
-    return { ok: response.ok, body: await readJsonSafe(response) };
-}
-
-export async function postLogin2fa(body: { tempToken: string; code: string }): Promise<{
-    ok: boolean;
-    body: unknown;
-}> {
-    const response = await fetch(`${API_URL}/api/auth/login/2fa`, {
-        method: 'POST',
-        credentials: API_FETCH_CREDENTIALS,
-        headers: getDefaultHeaders(),
-        body: JSON.stringify(body),
-    });
-    return { ok: response.ok, body: await readJsonSafe(response) };
+/** El token temporal del paso de 2FA lo agrega el BFF desde su cookie. */
+export function postLogin2fa(body: { code: string }) {
+    return post('/api/auth/login/2fa', body);
 }
 
 /**
  * Why: Solicitud de recuperación (anti-enumeración: el backend responde 200 genérico).
  */
-export async function postAuthForgotPassword(body: { email: string }): Promise<{ ok: boolean; body: unknown }> {
-    const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
-        method: 'POST',
-        credentials: API_FETCH_CREDENTIALS,
-        headers: getDefaultHeaders(),
-        body: JSON.stringify(body),
-    });
-    return { ok: response.ok, body: await readJsonSafe(response) };
+export function postAuthForgotPassword(body: { email: string }) {
+    return post('/api/auth/forgot-password', body);
 }
 
 /**
- * Why: Completa el reset con token del correo; `newPassword` va cifrado con handshake RSA como login.
+ * Why: Completa el reset; `newPassword` va cifrado con handshake RSA como login. El token del correo lo agrega el
+ * BFF desde su cookie (nunca queda en la URL).
  */
-export async function postAuthResetPassword(body: {
-    token: string;
-    newPassword: string;
-}): Promise<{ ok: boolean; body: unknown }> {
-    const response = await fetch(`${API_URL}/api/auth/reset-password`, {
-        method: 'POST',
-        credentials: API_FETCH_CREDENTIALS,
-        headers: getDefaultHeaders(),
-        body: JSON.stringify(body),
-    });
-    return { ok: response.ok, body: await readJsonSafe(response) };
+export function postAuthResetPassword(body: { newPassword: string }) {
+    return post('/api/auth/reset-password', body);
 }
 
-/** Why: RTR; el refresh va en cookie HttpOnly — body puede ir vacío. */
-export async function postAuthRefresh(body: { refreshToken?: string } = {}): Promise<{
-    ok: boolean;
-    body: unknown;
-}> {
-    const response = await fetch(`${API_URL}/api/auth/refresh`, {
-        method: 'POST',
-        credentials: API_FETCH_CREDENTIALS,
-        headers: getDefaultHeaders(),
-        body: JSON.stringify(body),
-    });
-    return { ok: response.ok, body: await readJsonSafe(response) };
-}
-
-/** Why: Revoca refresh en servidor y borra la cookie HttpOnly. */
-export async function postAuthLogout(body: { refreshToken?: string } = {}): Promise<{
-    ok: boolean;
-    body: unknown;
-}> {
-    const response = await fetch(`${API_URL}/api/auth/logout`, {
-        method: 'POST',
-        credentials: API_FETCH_CREDENTIALS,
-        headers: getDefaultHeaders(),
-        body: JSON.stringify(body),
-    });
-    return { ok: response.ok, body: await readJsonSafe(response) };
+/** Why: Revoca el refresh en el backend y borra las cookies de sesión. */
+export function postAuthLogout() {
+    return post('/api/bff/logout', {});
 }

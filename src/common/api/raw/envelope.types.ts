@@ -21,22 +21,6 @@ export interface ApiSuccessResponse<T> {
 
 export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse;
 
-export interface ApiLoginSuccessData {
-    accessToken: string;
-    /** Opcional si el API envía el refresh solo por cookie HttpOnly. */
-    refreshToken?: string | null;
-    accessTokenExpiresAt: string;
-    tokenType: string;
-}
-
-export interface ApiMfaRequiredData {
-    result: 'mfa_required';
-    tempToken: string;
-    message: string;
-}
-
-export type ApiLoginData = ApiLoginSuccessData | ApiMfaRequiredData;
-
 export interface ApiMfaSetupData {
     secret: string;
     qrCodeUri: string;

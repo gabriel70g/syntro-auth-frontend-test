@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     postAccountMfaConfirmSync,
@@ -10,15 +10,19 @@ import {
 } from '@common/api/clients/mfa.http.client';
 import { mapMfaConfirmHttpToOutcome, mapMfaSetupHttpToOutcome } from '@common/api/mappers/mfa.mapper';
 import { mapUnknownToErrorMessage } from '@common/api/mappers/error-message.mapper';
-import { readStoredAccessToken } from '@common/lib/storage/auth-session.storage';
+import { useSessionClaims } from '@common/hooks/useSessionClaims';
+import { homePathForRole } from '@common/lib/home-path';
 
 export type AccountMfaStep = 'intro' | 'scan' | 'sync' | 'done' | 'verify' | 'verify_ok' | 'disable' | 'disable_email_sent';
 
 /**
- * Why: Wizard 2FA desde cuenta (JWT completo); HTTP + mapeo fuera del JSX.
+ * Why: Wizard 2FA desde cuenta (sesión completa); HTTP + mapeo fuera del JSX. Sin sesión, el servidor redirige
+ * a /login antes de servir la pantalla y el BFF responde SESSION_EXPIRED.
  */
 export function useAccountMfaSettingsController() {
     const router = useRouter();
+    const { claims } = useSessionClaims();
+    const homePath = homePathForRole(claims?.role);
     const [step, setStep] = useState<AccountMfaStep>('intro');
     const [otpAuthUri, setOtpAuthUri] = useState('');
     const [manualKey, setManualKey] = useState('');
@@ -27,12 +31,7 @@ export function useAccountMfaSettingsController() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        if (!readStoredAccessToken()) router.replace('/login');
-    }, [router]);
-
     const startServerSetup = useCallback(async () => {
-        if (!readStoredAccessToken()) return;
         setLoading(true);
         setError('');
         const { ok, body } = await postAccountMfaSetup();
@@ -54,7 +53,6 @@ export function useAccountMfaSettingsController() {
                 setError('Ingresá 6 dígitos');
                 return;
             }
-            if (!readStoredAccessToken()) return;
             setLoading(true);
             setError('');
             const { ok, body } = await postAccountMfaConfirmSync(code);
@@ -77,7 +75,6 @@ export function useAccountMfaSettingsController() {
                 setError('Ingresá 6 dígitos');
                 return;
             }
-            if (!readStoredAccessToken()) return;
             setLoading(true);
             setError('');
             const { ok, body } = await postAccountMfaVerify(code);
@@ -93,7 +90,6 @@ export function useAccountMfaSettingsController() {
 
     const requestDisableEmail = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!readStoredAccessToken()) return;
         setLoading(true);
         setError('');
         const { ok, body } = await postAccountMfaDisableRequest();
@@ -117,6 +113,7 @@ export function useAccountMfaSettingsController() {
         setError,
         loading,
         router,
+        homePath,
         startServerSetup,
         submitSync,
         submitVerify,

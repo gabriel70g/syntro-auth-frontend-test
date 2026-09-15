@@ -1,6 +1,4 @@
-import { API_URL, API_FETCH_CREDENTIALS, getDefaultHeaders, mergeHeaders } from '@common/lib/config';
-import { readStoredAccessToken, writeAccessToken, clearAuthSessionStorage } from '@common/lib/storage/auth-session.storage';
-import { extractAccessTokenFromEnvelope } from '@common/api/mappers/auth-session.mapper';
+import { getDefaultHeaders, mergeHeaders } from '@common/lib/config';
 
 /**
  * Why: Parseo JSON tolerante para capa HTTP.
@@ -13,77 +11,46 @@ export async function readJsonSafe(response: Response): Promise<unknown> {
     }
 }
 
+export interface HttpResult {
+    readonly ok: boolean;
+    readonly status: number;
+    readonly body: unknown;
+}
+
+function errorCodeOf(body: unknown): string | null {
+    if (typeof body !== 'object' || body === null) return null;
+    const error = (body as { error?: { code?: unknown } }).error;
+    return typeof error?.code === 'string' ? error.code : null;
+}
+
 /**
- * Why: Interceptor 401 → auto-refresh centralizado.
- * Agrega Bearer desde memoria, y si recibe 401 intenta refresh (cookie HttpOnly)
- * una sola vez antes de redirigir a /login.
+ * Why: todo pedido va al BFF del mismo origen. Las credenciales viajan en cookies HttpOnly que este código no
+ * puede leer; el refresh lo hace el servidor. status 0 = no hubo respuesta (red).
  */
-
-let refreshPromise: Promise<string | null> | null = null;
-
-async function doRefresh(): Promise<string | null> {
+export async function bffFetch(path: string, init: RequestInit = {}): Promise<HttpResult> {
     try {
-        const res = await fetch(`${API_URL}/api/auth/refresh`, {
-            method: 'POST',
-            credentials: API_FETCH_CREDENTIALS,
-            headers: getDefaultHeaders(),
-            body: JSON.stringify({}),
-        });
-        if (!res.ok) return null;
-        const body = await readJsonSafe(res);
-        const newToken = extractAccessTokenFromEnvelope(body);
-        if (!newToken) return null;
-        writeAccessToken(newToken);
-        return newToken;
-    } catch {
-        return null;
-    }
-}
-
-export function refreshAccessToken(): Promise<string | null> {
-    if (!refreshPromise) {
-        refreshPromise = doRefresh().finally(() => {
-            refreshPromise = null;
-        });
-    }
-    return refreshPromise;
-}
-
-export async function authenticatedFetch(
-    path: string,
-    init: RequestInit = {},
-): Promise<{ ok: boolean; status: number; body: unknown }> {
-    const token = readStoredAccessToken();
-    const headers = mergeHeaders(
-        getDefaultHeaders(),
-        {
-            ...(init.headers as Record<string, string> | undefined),
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-    );
-
-    const doFetch = async (authHeaders: Record<string, string>) => {
-        const res = await fetch(`${API_URL}${path}`, {
+        const res = await fetch(path, {
             ...init,
-            credentials: API_FETCH_CREDENTIALS,
-            headers: authHeaders,
+            credentials: 'same-origin',
+            headers: mergeHeaders(getDefaultHeaders(), (init.headers as Record<string, string> | undefined) ?? {}),
         });
         return { ok: res.ok, status: res.status, body: await readJsonSafe(res) };
-    };
-
-    const result = await doFetch(headers);
-
-    if (result.status === 401 && token) {
-        const newToken = await refreshAccessToken();
-        if (newToken) {
-            const retryHeaders = mergeHeaders(headers, { Authorization: `Bearer ${newToken}` });
-            return doFetch(retryHeaders);
-        }
-        clearAuthSessionStorage();
-        if (typeof window !== 'undefined') {
-            window.location.href = '/login';
-        }
+    } catch {
+        return { ok: false, status: 0, body: null };
     }
+}
 
+/** Si la sesión venció (el servidor ya no pudo refrescarla), vuelve al login. */
+export function redirectIfSessionExpired(status: number, body: unknown): void {
+    if (status === 401 && errorCodeOf(body) === 'SESSION_EXPIRED' && typeof window !== 'undefined') {
+        // Navegación completa a propósito: descarta todo el estado de la pantalla.
+        window.location.assign(new URL('/login', window.location.origin));
+    }
+}
+
+/** Pedido que necesita sesión. */
+export async function authenticatedFetch(path: string, init: RequestInit = {}): Promise<HttpResult> {
+    const result = await bffFetch(path, init);
+    redirectIfSessionExpired(result.status, result.body);
     return result;
 }

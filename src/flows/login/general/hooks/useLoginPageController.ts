@@ -9,8 +9,6 @@ import { getOAuthConfig } from '@common/api/clients/oauth-config.http.client';
 import { mapLoginResponseBodyToResult } from '@common/api/mappers/login-result.mapper';
 import { mapOAuthConfigBodyToProviders } from '@common/api/mappers/oauth-config.mapper';
 import { encryptPassword } from '@common/lib/crypto';
-import { startOAuthRedirect } from '@common/lib/oauth-redirect';
-import { storeMfaTempToken, writeAuthSessionToStorage } from '@common/lib/storage/auth-session.storage';
 import { readActiveTenant, writeActiveTenant } from '@common/lib/storage/tenant.storage';
 import { getTenantByName } from '@common/api/clients/tenants.http.client';
 import { mapTenantLookupResponse } from '@common/api/mappers/tenant.mapper';
@@ -21,19 +19,20 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * Why: Orquesta login + carga OAuth config; efectos de red/storage acotados al hook.
+ * `initialError` viene del servidor (`/login?error=`, ya filtrado por lista cerrada).
  */
-export function useLoginPageController() {
+export function useLoginPageController(initialError = '') {
     const router = useRouter();
     const [credentials, setCredentials] = useState<AuthCredentials>({ email: '', password: '', tenantName: '' });
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
+    const [error, setError] = useState(initialError);
     const [showPassword, setShowPassword] = useState(false);
     const [oauthProviders, setOauthProviders] = useState<Record<string, OAuthProviderView>>({});
 
     useEffect(() => {
         const active = readActiveTenant();
-        if (active) setCredentials((c) => ({ ...c, tenantName: active.name }));
         void (async () => {
+            if (active) setCredentials((c) => ({ ...c, tenantName: active.name }));
             const { ok, body } = await getOAuthConfig();
             if (ok) setOauthProviders(mapOAuthConfigBodyToProviders(body));
         })();
@@ -45,7 +44,12 @@ export function useLoginPageController() {
             setError(`OAuth con ${provider} no está disponible`);
             return;
         }
-        startOAuthRedirect(provider, cfg.clientId);
+        // El servidor genera el `state`, lo ata a este navegador y redirige al proveedor.
+        const params = new URLSearchParams({ provider: provider.toLowerCase() });
+        const tenant = readActiveTenant();
+        if (tenant) params.set('tenant', tenant.id);
+        // Navegación completa: es un route handler que redirige al proveedor, no una página.
+        window.location.assign(new URL(`/api/bff/oauth/start?${params.toString()}`, window.location.origin));
     }, [oauthProviders]);
 
     const handleSubmit = useCallback(
@@ -84,13 +88,8 @@ export function useLoginPageController() {
                 });
                 const result = mapLoginResponseBodyToResult(ok, body);
 
-                if (result.success && result.mfaRequired && result.tempToken) {
-                    storeMfaTempToken(result.tempToken);
-                    if (result.message === 'SETUP_REQUIRED') {
-                        router.push('/mfa/setup');
-                    } else {
-                        router.push('/login/2fa');
-                    }
+                if (result.success && result.mfaRequired) {
+                    router.push(result.message === 'SETUP_REQUIRED' ? '/mfa/setup' : '/login/2fa');
                     return;
                 }
 
@@ -102,8 +101,7 @@ export function useLoginPageController() {
                 }
 
                 if (result.session) {
-                    writeAuthSessionToStorage(result.session);
-                    router.push(homePathForRole(result.session.user.role));
+                    router.push(homePathForRole(result.session.role));
                 }
             } catch {
                 setError('Error inesperado. Intenta nuevamente.');

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { postAuthMfaDisableConfirm } from '@common/api/clients/mfa.http.client';
 import { mapUnknownToErrorMessage } from '@common/api/mappers/error-message.mapper';
@@ -8,24 +8,20 @@ import { mapUnknownToErrorMessage } from '@common/api/mappers/error-message.mapp
 type Phase = 'loading' | 'ok' | 'error';
 
 /**
- * Why: Consume el token del correo (sin JWT); confirma baja de 2FA en el API.
+ * Why: Consume el token del correo (sin JWT); confirma baja de 2FA en el API. El token lo guardó el servidor en una
+ * cookie HttpOnly al abrir el link (la URL ya no lo tiene); `hasToken` dice si esa cookie está.
  */
-export function MfaDisableConfirmScreen() {
-    const searchParams = useSearchParams();
+export function MfaDisableConfirmScreen({ hasToken }: { hasToken: boolean }) {
     const router = useRouter();
-    const [phase, setPhase] = useState<Phase>('loading');
-    const [message, setMessage] = useState('');
+    const [phase, setPhase] = useState<Phase>(hasToken ? 'loading' : 'error');
+    const [message, setMessage] = useState(hasToken ? '' : 'Enlace inválido: falta el token.');
 
     useEffect(() => {
-        const token = searchParams.get('token');
-        if (!token) {
-            setPhase('error');
-            setMessage('Enlace inválido: falta el token.');
-            return;
-        }
-
-        const run = async () => {
-            const { ok, body } = await postAuthMfaDisableConfirm(token);
+        if (!hasToken) return;
+        let alive = true;
+        void (async () => {
+            const { ok, body } = await postAuthMfaDisableConfirm();
+            if (!alive) return;
             if (ok) {
                 setPhase('ok');
                 setMessage('2FA desactivado correctamente.');
@@ -33,10 +29,11 @@ export function MfaDisableConfirmScreen() {
             }
             setPhase('error');
             setMessage(mapUnknownToErrorMessage(body, 'No se pudo confirmar. El enlace puede haber vencido o ya se usó.'));
+        })();
+        return () => {
+            alive = false;
         };
-
-        void run();
-    }, [searchParams]);
+    }, [hasToken]);
 
     return (
         <div

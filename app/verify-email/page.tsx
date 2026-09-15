@@ -1,12 +1,6 @@
-'use client';
-
-import { Suspense } from 'react';
 import { VerifyEmailScreen } from '@flows/verify-email/general/components/VerifyEmailScreen';
+import { hasLinkToken } from '@server/link-token';
 
-export default function VerifyEmailPage() {
-    return (
-        <Suspense fallback={<div className="min-h-screen bg-black text-white flex items-center justify-center">Cargando...</div>}>
-            <VerifyEmailScreen />
-        </Suspense>
-    );
+export default async function VerifyEmailPage() {
+    return <VerifyEmailScreen hasToken={await hasLinkToken('verify')} />;
 }

@@ -1,5 +1,3 @@
-import { API_URL, API_FETCH_CREDENTIALS } from '@common/lib/config';
-
 function pemToArrayBuffer(pem: string): ArrayBuffer {
     const b64 = pem
         .replace(/-----BEGIN PUBLIC KEY-----/, '')
@@ -15,19 +13,16 @@ function pemToArrayBuffer(pem: string): ArrayBuffer {
 
 /**
  * Why: Handshake RSA-OAEP con el backend; efecto de red aislado (único lugar permitido aquí).
+ * La password se cifra en el navegador: ni el BFF la ve en claro.
  */
 export async function encryptPassword(password: string): Promise<string> {
-    const response = await fetch(`${API_URL}/api/auth/security/public-key`, {
-        credentials: API_FETCH_CREDENTIALS,
-    });
+    const response = await fetch('/api/auth/security/public-key', { credentials: 'same-origin' });
     if (!response.ok) throw new Error('No se pudo obtener la clave pública de seguridad');
 
     const pem = await response.text();
     const seed = response.headers.get('X-Correlation-Id')?.trim() ?? '';
     if (!seed) {
-        throw new Error(
-            'No se recibió la semilla del handshake (cabecera X-Correlation-Id). El API debe exponerla en CORS (Access-Control-Expose-Headers).'
-        );
+        throw new Error('No se recibió la semilla del handshake (cabecera X-Correlation-Id).');
     }
 
     const keyBuffer = pemToArrayBuffer(pem);

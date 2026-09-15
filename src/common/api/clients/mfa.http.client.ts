@@ -1,63 +1,37 @@
-import { API_URL, API_FETCH_CREDENTIALS, getDefaultHeaders, mergeHeaders } from '@common/lib/config';
-import { readJsonSafe, authenticatedFetch } from '@common/api/clients/http.helpers';
+import { authenticatedFetch, bffFetch } from '@common/api/clients/http.helpers';
 
 /**
- * Why: Los endpoints /api/auth/mfa/* usan tempToken (no access token),
- * así que no pasan por authenticatedFetch — el bearer es explícito.
+ * Why: Los endpoints /api/auth/mfa/* usan el token temporal del login (no el access token). Lo agrega el BFF
+ * desde su cookie HttpOnly.
  */
 
-function headersWithBearer(bearer: string): Record<string, string> {
-    return mergeHeaders(getDefaultHeaders(), { Authorization: `Bearer ${bearer}` });
+export async function postAuthMfaSetup(): Promise<{ ok: boolean; body: unknown }> {
+    const res = await bffFetch('/api/auth/mfa/setup', { method: 'POST' });
+    return { ok: res.ok, body: res.body };
 }
 
-export async function postAuthMfaSetup(bearerTempToken: string): Promise<{ ok: boolean; body: unknown }> {
-    const response = await fetch(`${API_URL}/api/auth/mfa/setup`, {
-        method: 'POST',
-        credentials: API_FETCH_CREDENTIALS,
-        headers: headersWithBearer(bearerTempToken),
-    });
-    return { ok: response.ok, body: await readJsonSafe(response) };
+export async function postAuthMfaEnable(code: string): Promise<{ ok: boolean; body: unknown }> {
+    const res = await bffFetch('/api/auth/mfa/enable', { method: 'POST', body: JSON.stringify({ code }) });
+    return { ok: res.ok, body: res.body };
 }
 
-export async function postAuthMfaEnable(bearerTempToken: string, code: string): Promise<{
-    ok: boolean;
-    body: unknown;
-}> {
-    const response = await fetch(`${API_URL}/api/auth/mfa/enable`, {
-        method: 'POST',
-        credentials: API_FETCH_CREDENTIALS,
-        headers: headersWithBearer(bearerTempToken),
-        body: JSON.stringify({ code }),
-    });
-    return { ok: response.ok, body: await readJsonSafe(response) };
-}
-
-export async function postAuthMfaDisableConfirm(token: string): Promise<{ ok: boolean; body: unknown }> {
-    const response = await fetch(`${API_URL}/api/auth/mfa/disable/confirm`, {
-        method: 'POST',
-        credentials: API_FETCH_CREDENTIALS,
-        headers: getDefaultHeaders(),
-        body: JSON.stringify({ token }),
-    });
-    return { ok: response.ok, body: await readJsonSafe(response) };
+/** El token del correo lo agrega el BFF desde su cookie. */
+export async function postAuthMfaDisableConfirm(): Promise<{ ok: boolean; body: unknown }> {
+    const res = await bffFetch('/api/auth/mfa/disable/confirm', { method: 'POST', body: '{}' });
+    return { ok: res.ok, body: res.body };
 }
 
 /**
- * Why: Los endpoints /api/account/mfa/* usan access token de sesión →
- * pasan por authenticatedFetch para auto-refresh en 401.
+ * Why: Los endpoints /api/account/mfa/* usan la sesión.
  */
 
 export async function postAccountMfaSetup(): Promise<{ ok: boolean; body: unknown }> {
     return authenticatedFetch('/api/account/mfa/setup', { method: 'POST' });
 }
 
-export async function postAccountMfaConfirmSync(
-    code: string,
-    tenantId?: string
-): Promise<{ ok: boolean; body: unknown }> {
+export async function postAccountMfaConfirmSync(code: string): Promise<{ ok: boolean; body: unknown }> {
     return authenticatedFetch('/api/account/mfa/confirm-sync', {
         method: 'POST',
-        headers: tenantId ? { 'X-Tenant-Id': tenantId } : undefined,
         body: JSON.stringify({ code }),
     });
 }
