@@ -12,15 +12,15 @@ export function Login2faChallengeScreen() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-                color: '#f1f5f9',
+                background: 'linear-gradient(135deg, var(--color-surface-bg-from) 0%, var(--color-surface-bg-to) 100%)',
+                color: 'var(--color-text-strong)',
             }}
         >
             <div
                 style={{
                     maxWidth: '400px',
                     width: '100%',
-                    background: 'rgba(30, 41, 59, 0.8)',
+                    background: 'var(--color-surface-card-strong)',
                     border: '1px solid rgba(148, 163, 184, 0.2)',
                     borderRadius: '16px',
                     padding: '2rem',
@@ -49,7 +49,7 @@ export function Login2faChallengeScreen() {
                 </div>
 
                 <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Verificación Segura</h2>
-                <p style={{ color: '#94a3b8', marginBottom: '2rem', fontSize: '0.9rem' }}>
+                <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>
                     Ingresa el código de 6 dígitos de tu aplicación autenticadora.
                 </p>
 
@@ -57,7 +57,7 @@ export function Login2faChallengeScreen() {
                     <div
                         style={{
                             background: 'rgba(239, 68, 68, 0.15)',
-                            color: '#fca5a5',
+                            color: 'var(--color-danger-fg)',
                             padding: '0.75rem',
                             borderRadius: '8px',
                             fontSize: '0.875rem',
@@ -107,7 +107,7 @@ export function Login2faChallengeScreen() {
                         style={{
                             width: '100%',
                             padding: '0.875rem',
-                            background: c.isLoading ? '#475569' : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                            background: c.isLoading ? 'var(--color-surface-raised)' : 'linear-gradient(135deg, var(--color-action-from) 0%, var(--color-action-to) 100%)',
                             color: 'white',
                             border: 'none',
                             borderRadius: '8px',

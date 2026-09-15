@@ -17,7 +17,7 @@ export function DashboardClaimRow({ label, value, hint }: Props) {
             <span className="text-[var(--color-text-strong)] break-all flex-1">
                 {value}
                 {hint && (
-                    <span className="text-[var(--color-text-disabled)] text-[0.7rem] ml-2 italic">
+                    <span className="text-[var(--color-text-dim)] text-xs ml-2">
                         — {hint}
                     </span>
                 )}

@@ -129,7 +129,7 @@
 
 .brand-tagline {
     color: var(--color-gold-soft);
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 500;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -150,7 +150,7 @@
 /* Sello de seguridad, discreto */
 .login-secured {
     color: var(--color-text-dim);
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     letter-spacing: 0.06em;
     margin-top: 0.25rem;
 }

@@ -16,15 +16,15 @@ export function MfaForcedSetupScreen() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-                color: '#f1f5f9',
+                background: 'linear-gradient(135deg, var(--color-surface-bg-from) 0%, var(--color-surface-bg-to) 100%)',
+                color: 'var(--color-text-strong)',
             }}
         >
             <div
                 style={{
                     maxWidth: '450px',
                     width: '100%',
-                    background: 'rgba(30, 41, 59, 0.9)',
+                    background: 'var(--color-surface-card-strong)',
                     border: '1px solid rgba(148, 163, 184, 0.2)',
                     borderRadius: '16px',
                     padding: '2rem',
@@ -34,11 +34,11 @@ export function MfaForcedSetupScreen() {
                     Configurar 2FA
                 </h1>
 
-                {c.step === 'loading' && <p style={{ textAlign: 'center', color: '#94a3b8' }}>Obteniendo semilla del servidor…</p>}
+                {c.step === 'loading' && <p style={{ textAlign: 'center', color: 'var(--color-text-muted)' }}>Obteniendo semilla del servidor…</p>}
 
                 {c.step === 'error' && (
                     <div style={{ textAlign: 'center' }}>
-                        <p style={{ color: '#fca5a5', marginBottom: '1rem' }}>{c.error}</p>
+                        <p style={{ color: 'var(--color-danger-fg)', marginBottom: '1rem' }}>{c.error}</p>
                         <button
                             type="button"
                             onClick={() => c.router.push('/login')}
@@ -46,7 +46,7 @@ export function MfaForcedSetupScreen() {
                                 padding: '0.75rem 1.25rem',
                                 borderRadius: '8px',
                                 border: 'none',
-                                background: '#3b82f6',
+                                background: 'var(--color-action-from)',
                                 color: 'white',
                                 fontWeight: 600,
                                 cursor: 'pointer',
@@ -59,7 +59,7 @@ export function MfaForcedSetupScreen() {
 
                 {c.step === 'qr' && (
                     <div>
-                        <p style={{ color: '#cbd5e1', marginBottom: '1.5rem', fontSize: '0.9rem', textAlign: 'center' }}>
+                        <p style={{ color: 'var(--color-text-medium)', marginBottom: '1.5rem', fontSize: '0.9rem', textAlign: 'center' }}>
                             Escaneá el código con tu app autenticadora. La semilla la generó el servidor.
                         </p>
                         {c.otpAuthUri ? (
@@ -77,7 +77,7 @@ export function MfaForcedSetupScreen() {
                         ) : null}
                         <div
                             style={{
-                                background: 'rgba(0,0,0,0.2)',
+                                background: 'var(--color-surface-inner)',
                                 padding: '0.75rem',
                                 borderRadius: '6px',
                                 marginBottom: '1.5rem',
@@ -95,7 +95,7 @@ export function MfaForcedSetupScreen() {
                             }}
                         >
                             {c.error && c.otpAuthUri && (
-                                <p style={{ color: '#fca5a5', fontSize: '0.875rem', marginBottom: '1rem' }}>{c.error}</p>
+                                <p style={{ color: 'var(--color-danger-fg)', fontSize: '0.875rem', marginBottom: '1rem' }}>{c.error}</p>
                             )}
                             <input
                                 type="text"
@@ -108,8 +108,8 @@ export function MfaForcedSetupScreen() {
                                     width: '100%',
                                     padding: '0.75rem',
                                     borderRadius: '8px',
-                                    border: '1px solid #475569',
-                                    background: '#1e293b',
+                                    border: '1px solid var(--color-border-soft)',
+                                    background: 'var(--color-surface-input)',
                                     color: 'white',
                                     fontSize: '1.2rem',
                                     textAlign: 'center',
@@ -122,7 +122,7 @@ export function MfaForcedSetupScreen() {
                                 style={{
                                     width: '100%',
                                     padding: '0.875rem',
-                                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                                    background: 'linear-gradient(135deg, var(--color-action-from) 0%, var(--color-action-to) 100%)',
                                     color: 'white',
                                     border: 'none',
                                     borderRadius: '8px',

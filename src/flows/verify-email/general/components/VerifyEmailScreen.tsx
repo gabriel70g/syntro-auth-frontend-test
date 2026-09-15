@@ -90,14 +90,14 @@ export function VerifyEmailScreen({ hasToken }: { hasToken: boolean }) {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4 font-sans">
-            <div className="w-full max-w-lg p-8 bg-neutral-900 rounded-2xl border border-neutral-800 shadow-2xl">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--color-surface-bg-from)] text-white p-4 font-sans">
+            <div className="w-full max-w-lg p-8 bg-[var(--color-surface-card-strong)] rounded-2xl border border-[var(--color-border-soft)] shadow-2xl">
 
                 {/* Header */}
                 <h1 className="text-3xl font-bold mb-2 text-center bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
                     SyntroAuth
                 </h1>
-                <p className="text-center text-neutral-400 mb-8">{message}</p>
+                <p className="text-center text-[var(--color-text-muted)] mb-8">{message}</p>
 
                 {/* LOADING */}
                 {(state === "verifying" || state === "enabling") && (
@@ -112,7 +112,7 @@ export function VerifyEmailScreen({ hasToken }: { hasToken: boolean }) {
                         <div className="text-red-500 text-6xl mb-4">✗</div>
                         <button
                             onClick={() => router.push("/login")}
-                            className="px-6 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg transition-colors"
+                            className="px-6 py-2 bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface-raised-hover)] text-white rounded-lg transition-colors"
                         >
                             Volver al inicio
                         </button>
@@ -135,33 +135,33 @@ export function VerifyEmailScreen({ hasToken }: { hasToken: boolean }) {
                 {/* SETUP MFA FORM */}
                 {state === "verified_setup_needed" && twoFactorSecret && (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="bg-neutral-950 p-6 rounded-lg border border-neutral-800 mb-6">
+                        <div className="bg-[var(--color-surface-inner)] p-6 rounded-lg border border-[var(--color-border-soft)] mb-6">
                             <h3 className="text-yellow-400 font-bold mb-2 flex items-center gap-2">
                                 <span>🛡️</span> Configura tu Authenticator
                             </h3>
-                            <p className="text-sm text-neutral-400 mb-4">
+                            <p className="text-sm text-[var(--color-text-muted)] mb-4">
                                 Escanea el QR (si estuviera aquí) o ingresa esta clave manualmente en Google Authenticator / Authy.
                             </p>
                             <div
                                 onClick={() => copyToClipboard(twoFactorSecret)}
-                                className="bg-neutral-800 p-4 rounded font-mono text-center tracking-widest text-xl cursor-pointer hover:bg-neutral-700 hover:text-white transition-colors text-blue-300 border border-neutral-700 mb-2"
+                                className="bg-[var(--color-surface-raised)] p-4 rounded font-mono text-center tracking-widest text-xl cursor-pointer hover:bg-[var(--color-surface-raised-hover)] hover:text-[var(--color-text-strong)] transition-colors text-blue-300 border border-[var(--color-border-soft)] mb-2"
                             >
                                 {twoFactorSecret}
                             </div>
-                            <p className="text-xs text-center text-neutral-500">Click para copiar</p>
+                            <p className="text-xs text-center text-[var(--color-text-dim)]">Click para copiar</p>
                         </div>
 
                         <form onSubmit={handleEnableMfa} className="space-y-4">
                             {/* Password input removed for Demo */}
                             <div>
-                                <label className="block text-sm font-medium text-neutral-300 mb-1">Código de 6 dígitos</label>
+                                <label className="block text-sm font-medium text-[var(--color-text-medium)] mb-1">Código de 6 dígitos</label>
                                 <input
                                     type="text"
                                     required
                                     maxLength={6}
                                     value={code}
                                     onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                                    className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-3 text-white font-mono text-center text-xl tracking-widest focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    className="w-full bg-[var(--color-surface-inner)] border border-[var(--color-border-soft)] rounded-lg px-4 py-3 text-white font-mono text-center text-xl tracking-widest focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                     placeholder="000 000"
                                 />
                             </div>
@@ -181,15 +181,15 @@ export function VerifyEmailScreen({ hasToken }: { hasToken: boolean }) {
                         <div className="text-center mb-6">
                             <span className="text-5xl">🎉</span>
                             <h2 className="text-xl font-semibold mt-2 text-green-400">¡Cuenta Protegida!</h2>
-                            <p className="text-neutral-400 text-sm mt-1">
+                            <p className="text-[var(--color-text-muted)] text-sm mt-1">
                                 Guardalos en un lugar seguro (gestor de contraseñas o carpeta cifrada). Podés copiarlos o
                                 descargar un archivo .txt.
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 mb-6 bg-neutral-950 p-4 rounded-xl border border-neutral-800">
+                        <div className="grid grid-cols-2 gap-3 mb-6 bg-[var(--color-surface-inner)] p-4 rounded-xl border border-[var(--color-border-soft)]">
                             {recoveryCodes.map((code, idx) => (
-                                <div key={idx} className="font-mono text-sm text-neutral-300 bg-neutral-900 p-2 rounded text-center border border-neutral-800">
+                                <div key={idx} className="font-mono text-sm text-[var(--color-text-medium)] bg-[var(--color-surface-card-strong)] p-2 rounded text-center border border-[var(--color-border-soft)]">
                                     {code}
                                 </div>
                             ))}
@@ -200,14 +200,14 @@ export function VerifyEmailScreen({ hasToken }: { hasToken: boolean }) {
                                 <button
                                     type="button"
                                     onClick={() => copyToClipboard(recoveryCodes.join("\n"))}
-                                    className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-white py-3 rounded-lg font-medium transition-colors"
+                                    className="flex-1 bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface-raised-hover)] text-white py-3 rounded-lg font-medium transition-colors"
                                 >
                                     Copiar códigos
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => downloadRecoveryCodesTxt(recoveryCodes)}
-                                    className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-white py-3 rounded-lg font-medium transition-colors"
+                                    className="flex-1 bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface-raised-hover)] text-white py-3 rounded-lg font-medium transition-colors"
                                 >
                                     Descargar .txt
                                 </button>
