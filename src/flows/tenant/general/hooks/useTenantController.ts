@@ -7,6 +7,7 @@ import { fetchIntegrationKit, getMyTenant, postCreateTenant } from '@common/api/
 import { refreshAccessToken } from '@common/api/clients/http.helpers';
 import { mapCreateTenantResponse, mapMyTenantResponse } from '@common/api/mappers/tenant.mapper';
 import { mapApiError } from '@common/api/mappers/api-error.mapper';
+import { decodeJwtPayload } from '@common/lib/jwt';
 import { readStoredAccessToken } from '@common/lib/storage/auth-session.storage';
 import { writeActiveTenant } from '@common/lib/storage/tenant.storage';
 
@@ -32,6 +33,7 @@ export function useTenantController() {
     const [companyName, setCompanyName] = useState('');
     const [actionError, setActionError] = useState<ApiErrorView | null>(null);
     const [busy, setBusy] = useState(false);
+    const [isGlobalAdmin, setIsGlobalAdmin] = useState(false);
 
     const load = useCallback(async () => {
         setState({ kind: 'loading' });
@@ -42,10 +44,13 @@ export function useTenantController() {
     }, []);
 
     useEffect(() => {
-        if (!readStoredAccessToken()) {
+        const token = readStoredAccessToken();
+        if (!token) {
             router.replace('/login');
             return;
         }
+        // Solo decide qué links se muestran; la autorización la aplica el backend.
+        setIsGlobalAdmin(decodeJwtPayload(token)?.role === 'admin');
         void load();
     }, [load, router]);
 
@@ -103,5 +108,5 @@ export function useTenantController() {
         }
     }, []);
 
-    return { state, companyName, setCompanyName, actionError, busy, createTenant, downloadKit, reload: load };
+    return { state, companyName, setCompanyName, actionError, busy, createTenant, downloadKit, reload: load, isGlobalAdmin };
 }
