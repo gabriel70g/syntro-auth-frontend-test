@@ -64,6 +64,7 @@ No hay `develop`.
 
 ```
 pnpm audit --prod --audit-level high   # 0 critical/high en dependencias de producción
+python3 scripts/check-contrast.py      # WCAG AA de los tokens de color, modo claro y oscuro
 pnpm lint                              # 0 errores, 0 warnings
 pnpm build                             # typecheck + build standalone
 bash scripts/e2e/bff.sh                # E2E: imagen del front contra la imagen AOT del backend
@@ -174,6 +175,25 @@ el E2E manda la password por `curl`. En producción la clave existe.
 
 **El contenedor del front bloquea `e2e_down`.** Si queda conectado a `sa-e2e-net`, la red no se borra y el
 próximo `e2e_up` falla con `network ... already exists`. `scripts/e2e/bff.sh` lo borra primero.
+
+**Modo claro/oscuro: cada color es `light-dark(claro, oscuro)` en `app/globals.css`, pero en el CSS servido no hay
+ningún `light-dark(`.** LightningCSS (lo usa Tailwind 4) lo compila a `var(--lightningcss-light, …)
+var(--lightningcss-dark, …)`, y esas variables se activan según el `color-scheme` de `:root`. Por eso la elección se
+hace con `color-scheme` (`:root` = `light dark`, `[data-theme]` lo fija) y no con un bloque de variables por tema.
+- Verificado en la imagen local:
+  - sin cookie sigue al sistema, emulado claro y oscuro;
+  - la cookie `sa_theme` hace que el servidor pinte `data-theme` en `<html>`, sin parpadeo después de recargar.
+- Las clases tailwind con color usan la variante `dark:` propia de `globals.css` (`data-theme` + sistema), no la de
+  Tailwind por defecto.
+- ❌ NEVER un color literal en un componente: en uno de los dos modos queda invisible. ✅ ALWAYS token +
+  `python3 scripts/check-contrast.py`.
+
+**No se puede llamar desde un Server Component una función exportada por un módulo `'use client'`.** Importarla compila
+y el build da verde, pero en runtime cada página responde con la pantalla de error (`__next_error__`, React #441). En el
+log aparece `Attempted to call parseThemeChoice() from the server but parseThemeChoice is on the client`. Visto al armar
+el selector de tema: el layout usaba `parseThemeChoice` desde `ThemeToggle.tsx`. ✅ ALWAYS poner lo compartido entre
+servidor y cliente en un módulo sin `'use client'` (`src/common/lib/theme.ts`) y verificar la imagen corriendo, no solo
+el build.
 
 **Railway dice `builder: RAILPACK` pero construye con el `Dockerfile`.** La config del servicio muestra
 RAILPACK, y aun así los logs de build del deploy `c8b4c35b` (2026-09-15) ejecutan las stages del `Dockerfile`

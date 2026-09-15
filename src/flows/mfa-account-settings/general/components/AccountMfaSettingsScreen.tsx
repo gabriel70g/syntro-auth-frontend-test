@@ -17,7 +17,7 @@ export function AccountMfaSettingsScreen() {
         maxWidth: '480px',
         width: '100%',
         background: 'var(--color-surface-card-strong)',
-        border: '1px solid rgba(148, 163, 184, 0.2)',
+        border: '1px solid var(--color-border-soft)',
         borderRadius: '16px',
         padding: '2rem',
     };
@@ -79,9 +79,9 @@ export function AccountMfaSettingsScreen() {
                                 width: '100%',
                                 padding: '0.875rem',
                                 borderRadius: '8px',
-                                border: '1px solid rgba(34, 197, 94, 0.4)',
-                                background: 'rgba(34, 197, 94, 0.1)',
-                                color: '#86efac',
+                                border: '1px solid var(--color-ok-border)',
+                                background: 'var(--color-ok-bg)',
+                                color: 'var(--color-ok-fg)',
                                 fontWeight: 600,
                                 cursor: 'pointer',
                                 marginBottom: '0.75rem',
@@ -100,8 +100,8 @@ export function AccountMfaSettingsScreen() {
                                 width: '100%',
                                 padding: '0.625rem',
                                 borderRadius: '8px',
-                                border: '1px solid rgba(239, 68, 68, 0.3)',
-                                background: 'rgba(239, 68, 68, 0.08)',
+                                border: '1px solid var(--color-danger-border)',
+                                background: 'var(--color-danger-bg)',
                                 color: 'var(--color-danger-fg)',
                                 cursor: 'pointer',
                                 fontSize: '0.875rem',
@@ -142,7 +142,7 @@ export function AccountMfaSettingsScreen() {
                                 textAlign: 'center',
                             }}
                         >
-                            <code style={{ color: '#fbbf24', wordBreak: 'break-all', fontSize: '0.95rem' }}>
+                            <code style={{ color: 'var(--color-warn-fg)', wordBreak: 'break-all', fontSize: '0.95rem' }}>
                                 {flow.manualKey}
                             </code>
                         </div>
@@ -159,8 +159,8 @@ export function AccountMfaSettingsScreen() {
                                 borderRadius: '8px',
                                 border: 'none',
                                 fontWeight: 700,
-                                background: '#334155',
-                                color: '#fff',
+                                background: 'var(--color-surface-raised)',
+                                color: 'var(--color-text-strong)',
                                 cursor: 'pointer',
                             }}
                         >
@@ -207,7 +207,7 @@ export function AccountMfaSettingsScreen() {
                                 borderRadius: '8px',
                                 border: '1px solid var(--color-border-soft)',
                                 background: 'var(--color-surface-input)',
-                                color: '#fff',
+                                color: 'var(--color-text-strong)',
                                 fontSize: '1.25rem',
                                 textAlign: 'center',
                                 letterSpacing: '0.25em',
@@ -223,7 +223,7 @@ export function AccountMfaSettingsScreen() {
                                 borderRadius: '8px',
                                 border: 'none',
                                 fontWeight: 700,
-                                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                                background: 'linear-gradient(135deg, var(--color-ok-solid-from) 0%, var(--color-ok-solid-to) 100%)',
                                 color: '#fff',
                                 cursor: flow.loading || flow.code.length !== 6 ? 'not-allowed' : 'pointer',
                                 opacity: flow.loading || flow.code.length !== 6 ? 0.7 : 1,
@@ -250,7 +250,7 @@ export function AccountMfaSettingsScreen() {
 
                 {flow.step === 'done' && (
                     <div>
-                        <p style={{ color: '#86efac', marginBottom: '0.5rem' }}>
+                        <p style={{ color: 'var(--color-ok-fg)', marginBottom: '0.5rem' }}>
                             2FA activado. Guardá los códigos de recuperación.
                         </p>
                         <p style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', marginBottom: '1rem', lineHeight: 1.5 }}>
@@ -313,8 +313,8 @@ export function AccountMfaSettingsScreen() {
                                     padding: '0.75rem',
                                     borderRadius: '8px',
                                     border: 'none',
-                                    background: '#334155',
-                                    color: '#fff',
+                                    background: 'var(--color-surface-raised)',
+                                    color: 'var(--color-text-strong)',
                                     fontWeight: 600,
                                     cursor: 'pointer',
                                     fontSize: '0.875rem',
@@ -364,7 +364,7 @@ export function AccountMfaSettingsScreen() {
                                 borderRadius: '8px',
                                 border: '1px solid var(--color-border-soft)',
                                 background: 'var(--color-surface-input)',
-                                color: '#fff',
+                                color: 'var(--color-text-strong)',
                                 fontSize: '1.25rem',
                                 textAlign: 'center',
                                 letterSpacing: '0.25em',
@@ -380,7 +380,7 @@ export function AccountMfaSettingsScreen() {
                                 borderRadius: '8px',
                                 border: 'none',
                                 fontWeight: 700,
-                                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                                background: 'linear-gradient(135deg, var(--color-ok-solid-from) 0%, var(--color-ok-solid-to) 100%)',
                                 color: '#fff',
                                 cursor: flow.loading || flow.code.length !== 6 ? 'not-allowed' : 'pointer',
                                 opacity: flow.loading || flow.code.length !== 6 ? 0.7 : 1,
@@ -410,7 +410,7 @@ export function AccountMfaSettingsScreen() {
 
                 {flow.step === 'verify_ok' && (
                     <div>
-                        <p style={{ color: '#86efac', fontSize: '1rem', marginBottom: '1rem' }}>
+                        <p style={{ color: 'var(--color-ok-fg)', fontSize: '1rem', marginBottom: '1rem' }}>
                             Código válido — tu 2FA está funcionando correctamente.
                         </p>
                         <button
@@ -450,7 +450,7 @@ export function AccountMfaSettingsScreen() {
                                 borderRadius: '8px',
                                 border: 'none',
                                 fontWeight: 700,
-                                background: '#b91c1c',
+                                background: 'var(--color-danger-solid)',
                                 color: '#fff',
                                 cursor: flow.loading ? 'not-allowed' : 'pointer',
                             }}
@@ -479,7 +479,7 @@ export function AccountMfaSettingsScreen() {
 
                 {flow.step === 'disable_email_sent' && (
                     <div>
-                        <p style={{ color: '#86efac', marginBottom: '0.75rem' }}>Correo enviado.</p>
+                        <p style={{ color: 'var(--color-ok-fg)', marginBottom: '0.75rem' }}>Correo enviado.</p>
                         <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
                             Revisá tu bandeja (y spam). Cuando abras el enlace del mail, 2FA se desactivará en esta cuenta.
                             El enlace solo sirve una vez.

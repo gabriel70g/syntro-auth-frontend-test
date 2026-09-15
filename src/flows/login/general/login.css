@@ -99,7 +99,7 @@
 .login-title {
     font-size: 2rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #ffffff 0%, var(--color-gold-deep) 100%);
+    background: linear-gradient(135deg, var(--color-heading-from) 0%, var(--color-gold-deep) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -120,7 +120,7 @@
     font-weight: 700;
     line-height: 1.05;
     letter-spacing: -0.03em;
-    background: linear-gradient(135deg, #ffffff 0%, var(--color-gold-deep) 100%);
+    background: linear-gradient(135deg, var(--color-heading-from) 0%, var(--color-gold-deep) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -372,9 +372,9 @@
 .oauth-button {
     width: 100%;
     padding: 0.875rem 1rem;
-    background: rgba(255, 255, 255, 0.05);
-    color: #e2e8f0;
-    border: 1px solid rgba(148, 163, 184, 0.15);
+    background: var(--color-surface-raised);
+    color: var(--color-text-strong);
+    border: 1px solid var(--color-border-soft);
     border-radius: var(--radius-input);
     font-weight: 500;
     font-size: 0.95rem;
@@ -387,7 +387,7 @@
 }
 
 .oauth-button:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--color-surface-raised-hover);
     border-color: var(--color-gold-glow);
     transform: translateY(-2px);
     box-shadow: var(--shadow-glass-sm);

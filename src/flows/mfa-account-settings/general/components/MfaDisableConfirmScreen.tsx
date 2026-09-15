@@ -52,7 +52,7 @@ export function MfaDisableConfirmScreen({ hasToken }: { hasToken: boolean }) {
                     maxWidth: '420px',
                     width: '100%',
                     background: 'var(--color-surface-card-strong)',
-                    border: '1px solid rgba(148, 163, 184, 0.2)',
+                    border: '1px solid var(--color-border-soft)',
                     borderRadius: '16px',
                     padding: '2rem',
                     textAlign: 'center',
@@ -61,7 +61,7 @@ export function MfaDisableConfirmScreen({ hasToken }: { hasToken: boolean }) {
                 {phase === 'loading' && <p style={{ color: 'var(--color-text-muted)' }}>Confirmando…</p>}
                 {phase === 'ok' && (
                     <>
-                        <p style={{ color: '#86efac', marginBottom: '1.25rem' }}>{message}</p>
+                        <p style={{ color: 'var(--color-ok-fg)', marginBottom: '1.25rem' }}>{message}</p>
                         <button
                             type="button"
                             onClick={() => router.push('/login')}
@@ -93,7 +93,7 @@ export function MfaDisableConfirmScreen({ hasToken }: { hasToken: boolean }) {
                                 border: 'none',
                                 fontWeight: 700,
                                 background: 'var(--color-surface-raised)',
-                                color: '#fff',
+                                color: 'var(--color-text-strong)',
                                 cursor: 'pointer',
                             }}
                         >

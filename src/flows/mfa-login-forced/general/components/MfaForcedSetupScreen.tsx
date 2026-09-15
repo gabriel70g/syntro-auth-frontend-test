@@ -25,7 +25,7 @@ export function MfaForcedSetupScreen() {
                     maxWidth: '450px',
                     width: '100%',
                     background: 'var(--color-surface-card-strong)',
-                    border: '1px solid rgba(148, 163, 184, 0.2)',
+                    border: '1px solid var(--color-border-soft)',
                     borderRadius: '16px',
                     padding: '2rem',
                 }}
@@ -84,7 +84,7 @@ export function MfaForcedSetupScreen() {
                                 textAlign: 'center',
                             }}
                         >
-                            <code style={{ fontSize: '1.1rem', letterSpacing: '1px', color: '#fbbf24', wordBreak: 'break-all' }}>
+                            <code style={{ fontSize: '1.1rem', letterSpacing: '1px', color: 'var(--color-warn-fg)', wordBreak: 'break-all' }}>
                                 {c.manualKey}
                             </code>
                         </div>
@@ -110,7 +110,7 @@ export function MfaForcedSetupScreen() {
                                     borderRadius: '8px',
                                     border: '1px solid var(--color-border-soft)',
                                     background: 'var(--color-surface-input)',
-                                    color: 'white',
+                                    color: 'var(--color-text-strong)',
                                     fontSize: '1.2rem',
                                     textAlign: 'center',
                                     marginBottom: '1rem',
@@ -139,7 +139,7 @@ export function MfaForcedSetupScreen() {
 
                 {c.step === 'success' && (
                     <div style={{ textAlign: 'center' }}>
-                        <p style={{ color: '#86efac' }}>Listo. Redirigiendo…</p>
+                        <p style={{ color: 'var(--color-ok-fg)' }}>Listo. Redirigiendo…</p>
                     </div>
                 )}
             </div>

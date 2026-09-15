@@ -21,5 +21,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm audit --prod --audit-level high
+      - run: python3 scripts/check-contrast.py # WCAG AA de los tokens, modo claro y oscuro
       - run: pnpm lint
       - run: pnpm build

@@ -48,12 +48,12 @@ export const SECURITY_FEATURES: readonly SecurityFeature[] = [
 
 /** Map de tag → clases tailwind para los chips (bg + text). */
 export const TAG_STYLES: Record<SecurityFeatureTag, string> = {
-    'Core': 'bg-slate-500/20 text-slate-400',
-    'PEN-1': 'bg-purple-500/20 text-purple-300',
-    'PEN-2': 'bg-blue-500/20 text-blue-300',
-    'PEN-3': 'bg-red-500/20 text-red-300',
-    'PEN-4': 'bg-amber-500/20 text-amber-300',
-    'PEN-5': 'bg-emerald-500/20 text-emerald-300',
-    'PEN-7': 'bg-pink-500/20 text-pink-300',
-    'SSO': 'bg-yellow-500/20 text-yellow-300',
+    'Core': 'bg-slate-500/15 text-slate-600 dark:text-slate-400',
+    'PEN-1': 'bg-purple-500/15 text-purple-700 dark:text-purple-300',
+    'PEN-2': 'bg-blue-500/15 text-blue-700 dark:text-blue-300',
+    'PEN-3': 'bg-red-500/15 text-red-700 dark:text-red-300',
+    'PEN-4': 'bg-amber-500/15 text-amber-800 dark:text-amber-300',
+    'PEN-5': 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
+    'PEN-7': 'bg-pink-500/15 text-pink-700 dark:text-pink-300',
+    'SSO': 'bg-yellow-500/15 text-yellow-800 dark:text-yellow-300',
 };

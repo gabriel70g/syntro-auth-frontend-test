@@ -90,11 +90,11 @@ export function VerifyEmailScreen({ hasToken }: { hasToken: boolean }) {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--color-surface-bg-from)] text-white p-4 font-sans">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--color-surface-bg-from)] text-[var(--color-text-strong)] p-4 font-sans">
             <div className="w-full max-w-lg p-8 bg-[var(--color-surface-card-strong)] rounded-2xl border border-[var(--color-border-soft)] shadow-2xl">
 
                 {/* Header */}
-                <h1 className="text-3xl font-bold mb-2 text-center bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold mb-2 text-center bg-gradient-to-r from-blue-700 to-purple-700 dark:from-blue-400 dark:to-purple-500 bg-clip-text text-transparent">
                     SyntroAuth
                 </h1>
                 <p className="text-center text-[var(--color-text-muted)] mb-8">{message}</p>
@@ -109,10 +109,10 @@ export function VerifyEmailScreen({ hasToken }: { hasToken: boolean }) {
                 {/* ERROR */}
                 {state === "error" && (
                     <div className="text-center">
-                        <div className="text-red-500 text-6xl mb-4">✗</div>
+                        <div className="text-[var(--color-danger-fg)] text-6xl mb-4">✗</div>
                         <button
                             onClick={() => router.push("/login")}
-                            className="px-6 py-2 bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface-raised-hover)] text-white rounded-lg transition-colors"
+                            className="px-6 py-2 bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface-raised-hover)] text-[var(--color-text-strong)] rounded-lg transition-colors"
                         >
                             Volver al inicio
                         </button>
@@ -122,7 +122,7 @@ export function VerifyEmailScreen({ hasToken }: { hasToken: boolean }) {
                 {/* ALREADY VERIFIED / NO MFA NEEDED */}
                 {state === "success_no_action" && (
                     <div className="text-center w-full">
-                        <div className="text-green-400 text-6xl mb-6">✓</div>
+                        <div className="text-[var(--color-ok-fg)] text-6xl mb-6">✓</div>
                         <button
                             onClick={() => router.push("/login")}
                             className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-all"
@@ -136,7 +136,7 @@ export function VerifyEmailScreen({ hasToken }: { hasToken: boolean }) {
                 {state === "verified_setup_needed" && twoFactorSecret && (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="bg-[var(--color-surface-inner)] p-6 rounded-lg border border-[var(--color-border-soft)] mb-6">
-                            <h3 className="text-yellow-400 font-bold mb-2 flex items-center gap-2">
+                            <h3 className="text-[var(--color-warn-fg)] font-bold mb-2 flex items-center gap-2">
                                 <span>🛡️</span> Configura tu Authenticator
                             </h3>
                             <p className="text-sm text-[var(--color-text-muted)] mb-4">
@@ -144,7 +144,7 @@ export function VerifyEmailScreen({ hasToken }: { hasToken: boolean }) {
                             </p>
                             <div
                                 onClick={() => copyToClipboard(twoFactorSecret)}
-                                className="bg-[var(--color-surface-raised)] p-4 rounded font-mono text-center tracking-widest text-xl cursor-pointer hover:bg-[var(--color-surface-raised-hover)] hover:text-[var(--color-text-strong)] transition-colors text-blue-300 border border-[var(--color-border-soft)] mb-2"
+                                className="bg-[var(--color-surface-raised)] p-4 rounded font-mono text-center tracking-widest text-xl cursor-pointer hover:bg-[var(--color-surface-raised-hover)] hover:text-[var(--color-text-strong)] transition-colors text-[var(--color-action-fg)] border border-[var(--color-border-soft)] mb-2"
                             >
                                 {twoFactorSecret}
                             </div>
@@ -161,7 +161,7 @@ export function VerifyEmailScreen({ hasToken }: { hasToken: boolean }) {
                                     maxLength={6}
                                     value={code}
                                     onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                                    className="w-full bg-[var(--color-surface-inner)] border border-[var(--color-border-soft)] rounded-lg px-4 py-3 text-white font-mono text-center text-xl tracking-widest focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    className="w-full bg-[var(--color-surface-inner)] border border-[var(--color-border-soft)] rounded-lg px-4 py-3 text-[var(--color-text-strong)] font-mono text-center text-xl tracking-widest focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                     placeholder="000 000"
                                 />
                             </div>
@@ -180,7 +180,7 @@ export function VerifyEmailScreen({ hasToken }: { hasToken: boolean }) {
                     <div className="animate-in zoom-in duration-300">
                         <div className="text-center mb-6">
                             <span className="text-5xl">🎉</span>
-                            <h2 className="text-xl font-semibold mt-2 text-green-400">¡Cuenta Protegida!</h2>
+                            <h2 className="text-xl font-semibold mt-2 text-[var(--color-ok-fg)]">¡Cuenta Protegida!</h2>
                             <p className="text-[var(--color-text-muted)] text-sm mt-1">
                                 Guardalos en un lugar seguro (gestor de contraseñas o carpeta cifrada). Podés copiarlos o
                                 descargar un archivo .txt.
@@ -200,14 +200,14 @@ export function VerifyEmailScreen({ hasToken }: { hasToken: boolean }) {
                                 <button
                                     type="button"
                                     onClick={() => copyToClipboard(recoveryCodes.join("\n"))}
-                                    className="flex-1 bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface-raised-hover)] text-white py-3 rounded-lg font-medium transition-colors"
+                                    className="flex-1 bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface-raised-hover)] text-[var(--color-text-strong)] py-3 rounded-lg font-medium transition-colors"
                                 >
                                     Copiar códigos
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => downloadRecoveryCodesTxt(recoveryCodes)}
-                                    className="flex-1 bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface-raised-hover)] text-white py-3 rounded-lg font-medium transition-colors"
+                                    className="flex-1 bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface-raised-hover)] text-[var(--color-text-strong)] py-3 rounded-lg font-medium transition-colors"
                                 >
                                     Descargar .txt
                                 </button>
@@ -215,7 +215,7 @@ export function VerifyEmailScreen({ hasToken }: { hasToken: boolean }) {
                             <button
                                 type="button"
                                 onClick={() => router.push(homePath)}
-                                className="w-full bg-white text-black hover:bg-gray-200 font-bold py-3 rounded-lg transition-colors"
+                                className="w-full bg-[var(--color-text-strong)] text-[var(--color-surface-bg-from)] hover:opacity-90 font-bold py-3 rounded-lg transition-colors"
                             >
                                 Continuar
                             </button>

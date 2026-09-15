@@ -58,7 +58,7 @@ export function SyntropySoftLogoCompact() {
             href={SYNTROPYSOFT_ORIGIN}
             target="_blank"
             rel="noopener noreferrer"
-            className="mb-6 flex w-full items-center justify-center gap-2 text-slate-400 transition-colors hover:text-slate-200"
+            className="mb-6 flex w-full items-center justify-center gap-2 text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-strong)]"
             aria-label="SyntropySoft — abre en una pestaña nueva"
         >
             <Image src={LOGO} alt="" width={32} height={27} className="object-contain" />

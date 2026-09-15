@@ -2,63 +2,94 @@
 
 /* ──────────────────────────────────────────────────────────────────────
    Theme tokens (Tailwind v4 @theme directive).
-   Branding: "Diamante" — negro + oro + hielo (diamante) + platino. Dark-first.
+   Branding: "Diamante" — oro + hielo (diamante) + platino, en modo claro y oscuro.
    Cualquier color/radio/shadow nuevo va acá — NO inline en componentes.
+
+   Modo claro/oscuro (2026-09-15, decisión del usuario: sistema + selector, claro por defecto):
+   - Cada color es `light-dark(claro, oscuro)`. Lo resuelve `color-scheme` (abajo): sin elección sigue al sistema;
+     la cookie `sa_theme` (selector) fija `data-theme` en <html> desde el servidor, sin parpadeo.
+   - Contraste: todo token de texto pasa WCAG AA (≥4.5:1) en los dos modos. Lo verifica
+     `python3 scripts/check-contrast.py` (gate y CI). ❌ NEVER cambiar un color sin correrlo.
    ────────────────────────────────────────────────────────────────────── */
 
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:not([data-theme="light"], [data-theme="light"] *)) {
+      @slot;
+    }
+  }
+}
+
 @theme {
-  /* Brand: gold accent ─────────────────────────────────────────────── */
-  --color-gold-deep: #d4af37;
-  --color-gold-soft: #e4c46a;
-  --color-gold-glow: rgba(212, 175, 55, 0.28);
-  --color-gold-glow-soft: rgba(212, 175, 55, 0.08);
+  /* Brand: gold accent (en claro, oro profundo para que sirva como texto) */
+  --color-gold-deep: light-dark(#7a5b09, #d4af37);
+  --color-gold-soft: light-dark(#6f5207, #e4c46a);
+  --color-gold-glow: light-dark(rgba(122, 91, 9, 0.22), rgba(212, 175, 55, 0.28));
+  --color-gold-glow-soft: light-dark(rgba(122, 91, 9, 0.08), rgba(212, 175, 55, 0.08));
 
-  /* Surfaces (carbón) ──────────────────────────────────────────────────
-     2026-09-15: de casi negro a carbón por legibilidad (pedido del usuario). La tarjeta se separa del fondo y
-     todo token de texto de abajo pasa WCAG AA (≥4.5:1) sobre fondo, tarjeta, panel interno e input. */
-  --color-surface-bg-from: #17181c;
-  --color-surface-bg-to: #212227;
-  --color-surface-card: rgba(42, 43, 49, 0.88);
-  --color-surface-card-strong: rgba(42, 43, 49, 0.96);
-  --color-surface-input: rgba(26, 27, 32, 0.85);
-  --color-surface-input-focus: rgba(26, 27, 32, 0.95);
-  --color-surface-inner: rgba(28, 29, 34, 0.85);
+  /* Surfaces: marfil en claro, carbón en oscuro */
+  --color-surface-bg-from: light-dark(#f7f6f2, #17181c);
+  --color-surface-bg-to: light-dark(#eeede7, #212227);
+  --color-surface-card: light-dark(rgba(255, 255, 255, 0.92), rgba(42, 43, 49, 0.88));
+  --color-surface-card-strong: light-dark(rgba(255, 255, 255, 0.98), rgba(42, 43, 49, 0.96));
+  --color-surface-input: light-dark(rgba(255, 255, 255, 0.96), rgba(26, 27, 32, 0.85));
+  --color-surface-input-focus: light-dark(#ffffff, rgba(26, 27, 32, 0.95));
+  --color-surface-inner: light-dark(rgba(243, 242, 236, 0.9), rgba(28, 29, 34, 0.85));
   /* Botones secundarios y paneles elevados sobre la tarjeta */
-  --color-surface-raised: #34353c;
-  --color-surface-raised-hover: #3f4048;
+  --color-surface-raised: light-dark(#e7e6df, #34353c);
+  --color-surface-raised-hover: light-dark(#dcdbd3, #3f4048);
+  --color-hover: light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.04));
+  --color-overlay: light-dark(rgba(30, 30, 26, 0.4), rgba(5, 5, 7, 0.72));
 
-  /* Borders (platino + toque oro) ───────────────────────────────────── */
-  --color-border-subtle: rgba(214, 214, 206, 0.14);
-  --color-border-soft: rgba(214, 214, 206, 0.24);
+  /* Borders */
+  --color-border-subtle: light-dark(rgba(40, 40, 34, 0.12), rgba(214, 214, 206, 0.14));
+  --color-border-soft: light-dark(rgba(40, 40, 34, 0.22), rgba(214, 214, 206, 0.24));
 
-  /* Text (platino / marfil) — contraste medido sobre la tarjeta ─────── */
-  --color-text-strong: #f7f5ef;   /* 13.3:1 */
-  --color-text-medium: #e2e1d9;   /* 11.1:1 */
-  --color-text-muted: #bdbcb4;    /*  7.6:1 */
-  --color-text-dim: #a8a79f;      /*  6.0:1 */
-  --color-text-disabled: #8d8c85; /*  4.3:1 — solo placeholders y controles deshabilitados */
+  /* Text */
+  --color-text-strong: light-dark(#1b1b18, #f7f5ef);
+  --color-text-medium: light-dark(#34342f, #e2e1d9);
+  --color-text-muted: light-dark(#52524b, #bdbcb4);
+  --color-text-dim: light-dark(#5c5c55, #a8a79f);
+  --color-text-disabled: light-dark(#6b6b64, #8d8c85); /* solo placeholders y controles deshabilitados */
+  --color-heading-from: light-dark(#1b1b18, #ffffff);  /* inicio del degradé de títulos (→ oro) */
 
-  /* Acción primaria azul (pantallas de 2FA): texto blanco ≥5:1 ─────── */
+  /* Acción primaria azul (pantallas de 2FA): texto blanco ≥5:1 en los dos modos */
   --color-action-from: #2563eb;
   --color-action-to: #1d4ed8;
+  --color-action-fg: light-dark(#1d4ed8, #60a5fa);
 
-  /* Feedback (danger / success / info=hielo) ───────────────────────── */
-  --color-danger-fg: #f4b0b0;
-  --color-danger-bg: rgba(224, 75, 74, 0.1);
-  --color-danger-border: rgba(224, 75, 74, 0.32);
-  --color-danger-solid: #e04b4a;
+  /* Feedback */
+  --color-danger-fg: light-dark(#b3261e, #f4b0b0);
+  --color-danger-bg: light-dark(rgba(179, 38, 30, 0.07), rgba(224, 75, 74, 0.1));
+  --color-danger-border: light-dark(rgba(179, 38, 30, 0.3), rgba(224, 75, 74, 0.32));
+  --color-danger-solid: #b91c1c;
 
-  --color-success-fg: #e4c46a;
-  --color-success-fg-soft: #f0d488;
-  --color-success-bg: rgba(212, 175, 55, 0.16);
+  --color-success-fg: light-dark(#7a5b09, #e4c46a);
+  --color-success-fg-soft: light-dark(#6e5208, #f0d488);
+  --color-success-bg: light-dark(rgba(122, 91, 9, 0.1), rgba(212, 175, 55, 0.16));
 
-  /* "info" = acento HIELO/DIAMANTE (mismos nombres de token, valor hielo) */
-  --color-info-fg: #bfe9f2;
-  --color-info-accent: #7fd4e3;
-  --color-info-bg: rgba(127, 212, 227, 0.12);
-  --color-info-border: rgba(127, 212, 227, 0.35);
-  --color-info-solid-from: #7fd4e3;
-  --color-info-solid-to: #4fb3c9;
+  /* "ok" = verde de confirmación (2FA activado, correo enviado) */
+  --color-ok-fg: light-dark(#166534, #86efac);
+  --color-ok-bg: light-dark(rgba(21, 128, 61, 0.08), rgba(34, 197, 94, 0.1));
+  --color-ok-border: light-dark(rgba(21, 128, 61, 0.35), rgba(34, 197, 94, 0.4));
+  --color-ok-solid-from: #15803d;
+  --color-ok-solid-to: #166534;
+
+  --color-warn-fg: light-dark(#b45309, #fbbf24);
+
+  /* "info" = acento HIELO/DIAMANTE */
+  --color-info-fg: light-dark(#0c6278, #bfe9f2);
+  --color-info-accent: light-dark(#0f6f87, #7fd4e3);
+  --color-info-bg: light-dark(rgba(12, 98, 120, 0.08), rgba(127, 212, 227, 0.12));
+  --color-info-border: light-dark(rgba(12, 98, 120, 0.3), rgba(127, 212, 227, 0.35));
+  --color-info-solid-from: light-dark(#0f6f87, #7fd4e3);
+  --color-info-solid-to: light-dark(#0c5a6e, #4fb3c9);
+  --color-on-info-solid: light-dark(#ffffff, #0e0e10);
+
+  --color-badge-bg: light-dark(rgba(255, 255, 255, 0.7), rgba(20, 20, 22, 0.55));
 
   /* Radii ────────────────────────────────────────────────────────────── */
   --radius-input: 12px;
@@ -67,11 +98,11 @@
   --radius-card-lg: 24px;
 
   /* Shadows (glass) ──────────────────────────────────────────────────── */
-  --shadow-glass-sm: 0 4px 12px rgba(0, 0, 0, 0.2);
-  --shadow-glass: 0 10px 40px rgba(0, 0, 0, 0.3),
+  --shadow-glass-sm: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-glass: 0 10px 40px rgba(0, 0, 0, 0.18),
                   0 0 0 1px rgba(212, 175, 55, 0.1),
                   inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  --shadow-glass-hover: 0 20px 60px rgba(0, 0, 0, 0.4),
+  --shadow-glass-hover: 0 20px 60px rgba(0, 0, 0, 0.25),
                         0 0 0 1px rgba(212, 175, 55, 0.2),
                         inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
@@ -84,6 +115,17 @@
   --animate-pulse-ring: pulse-ring 3s ease-in-out infinite;
   --animate-shake: shake 0.4s ease;
   --animate-spin-slow: spin 1s linear infinite;
+}
+
+/* Sin elección: sigue al sistema (y claro si el sistema no expresa preferencia). Con elección: la fija. */
+:root {
+  color-scheme: light dark;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 @keyframes float {
@@ -108,8 +150,7 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   Base body — dark-first, gradient slate. Las pantallas que apliquen
-   .page-shell encima sumarán padding/centrado.
+   Base body. Las pantallas que apliquen .page-shell encima sumarán padding/centrado.
    ────────────────────────────────────────────────────────────────────── */
 body {
   background: linear-gradient(135deg, var(--color-surface-bg-from) 0%, var(--color-surface-bg-to) 100%);
@@ -164,7 +205,7 @@ body {
   }
 
   .heading-gradient {
-    background: linear-gradient(135deg, #ffffff 0%, var(--color-gold-deep) 100%);
+    background: linear-gradient(135deg, var(--color-heading-from) 0%, var(--color-gold-deep) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -189,7 +230,7 @@ body {
   .form-input-base:focus {
     background: var(--color-surface-input-focus);
     border-color: var(--color-gold-deep);
-    box-shadow: 0 0 0 3px var(--color-gold-glow-soft), 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 0 3px var(--color-gold-glow-soft), 0 4px 12px rgba(0, 0, 0, 0.12);
   }
   .form-input-base:disabled {
     opacity: 0.5;
@@ -228,7 +269,7 @@ body {
     width: 100%;
     padding: 0.875rem;
     background: linear-gradient(135deg, var(--color-info-solid-from) 0%, var(--color-info-solid-to) 100%);
-    color: white;
+    color: var(--color-on-info-solid);
     font-weight: 600;
     border: none;
     border-radius: var(--radius-input);
@@ -400,7 +441,7 @@ body {
     gap: 6px;
     padding: 5px 10px;
     border-radius: 999px;
-    background: rgba(20, 20, 22, 0.55);
+    background: var(--color-badge-bg);
     border: 1px solid var(--color-border-subtle);
     backdrop-filter: blur(6px);
     text-decoration: none;
@@ -417,8 +458,45 @@ body {
     object-fit: contain;
   }
   .secured-badge__text {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     letter-spacing: 0.04em;
     color: var(--color-text-muted);
+  }
+
+  /* Selector de tema (Sistema / Claro / Oscuro), fijo abajo-izquierda */
+  .theme-toggle {
+    position: fixed;
+    left: 0.9rem;
+    bottom: 0.9rem;
+    z-index: 50;
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 999px;
+    background: var(--color-badge-bg);
+    border: 1px solid var(--color-border-soft);
+    backdrop-filter: blur(6px);
+  }
+  .theme-toggle__option {
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .theme-toggle__option:hover {
+    color: var(--color-text-strong);
+  }
+  .theme-toggle__option[aria-pressed="true"] {
+    background: var(--color-surface-raised);
+    color: var(--color-text-strong);
+    font-weight: 600;
+  }
+  .theme-toggle__option:focus-visible {
+    outline: 2px solid var(--color-gold-deep);
+    outline-offset: 1px;
   }
 }

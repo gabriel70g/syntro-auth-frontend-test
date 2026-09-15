@@ -21,7 +21,7 @@ export function Login2faChallengeScreen() {
                     maxWidth: '400px',
                     width: '100%',
                     background: 'var(--color-surface-card-strong)',
-                    border: '1px solid rgba(148, 163, 184, 0.2)',
+                    border: '1px solid var(--color-border-soft)',
                     borderRadius: '16px',
                     padding: '2rem',
                     textAlign: 'center',
@@ -32,14 +32,14 @@ export function Login2faChallengeScreen() {
                         width: '64px',
                         height: '64px',
                         borderRadius: '50%',
-                        background: 'rgba(59, 130, 246, 0.2)',
+                        background: 'var(--color-info-bg)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         margin: '0 auto 1.5rem auto',
                     }}
                 >
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-action-fg)" strokeWidth="2">
                         <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -56,7 +56,7 @@ export function Login2faChallengeScreen() {
                 {c.error && (
                     <div
                         style={{
-                            background: 'rgba(239, 68, 68, 0.15)',
+                            background: 'var(--color-danger-bg)',
                             color: 'var(--color-danger-fg)',
                             padding: '0.75rem',
                             borderRadius: '8px',
@@ -91,10 +91,10 @@ export function Login2faChallengeScreen() {
                                     height: '3.5rem',
                                     fontSize: '1.5rem',
                                     textAlign: 'center',
-                                    background: 'rgba(255, 255, 255, 0.05)',
-                                    border: '1px solid rgba(148, 163, 184, 0.2)',
+                                    background: 'var(--color-surface-input)',
+                                    border: '1px solid var(--color-border-soft)',
                                     borderRadius: '8px',
-                                    color: 'white',
+                                    color: 'var(--color-text-strong)',
                                     outline: 'none',
                                 }}
                             />
@@ -108,7 +108,7 @@ export function Login2faChallengeScreen() {
                             width: '100%',
                             padding: '0.875rem',
                             background: c.isLoading ? 'var(--color-surface-raised)' : 'linear-gradient(135deg, var(--color-action-from) 0%, var(--color-action-to) 100%)',
-                            color: 'white',
+                            color: c.isLoading ? 'var(--color-text-strong)' : 'white',
                             border: 'none',
                             borderRadius: '8px',
                             fontWeight: '600',
