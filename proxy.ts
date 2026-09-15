@@ -50,6 +50,10 @@ function contentSecurityPolicy(nonce: string): string {
     ].join('; ');
 }
 
+/**
+ * Acá `req.nextUrl` trae el host del pedido (verificado en producción), así que sirve de fallback sin `APP_ORIGIN`.
+ * No usar `redirectResponse`: con una `Location` relativa el proxy tira `ERR_INVALID_URL` y responde 500.
+ */
 function redirectTo(req: NextRequest, pathname: string, status: 303 | 307): NextResponse {
     return withSecurityHeaders(NextResponse.redirect(new URL(pathname, appOrigin() ?? req.nextUrl.origin), status));
 }

@@ -34,7 +34,7 @@ bff_login(){ # bff_login tenantId email jar → body
 }
 
 say "Entorno: backend AOT con Google OAuth configurado + front BFF"
-docker rm -f "$FC" >/dev/null 2>&1 # conectado a la red: sin esto e2e_down no puede borrarla
+docker rm -f "$FC" "$FC-sin-origen" >/dev/null 2>&1 # conectados a la red: sin esto e2e_down no puede borrarla
 e2e_up -e OAUTH_GOOGLE_CLIENT_ID=e2e-client-id -e OAUTH_GOOGLE_CLIENT_SECRET=e2e-client-secret || exit 1
 docker run -d --name "$FC" --network "$NET" -p 3000:8080 \
   -e SYNTROAUTH_API_URL="http://$API:8080" -e APP_ORIGIN=http://localhost:3000 syntro-front:bff >/dev/null || exit 1
@@ -166,6 +166,17 @@ DOWN=$(curl -s --max-time 30 "$F/api/auth/oauth/config")
 docker unpause "$API" >/dev/null
 check "→ 502 BACKEND_UNAVAILABLE" "502 BACKEND_UNAVAILABLE" "$(echo "$DOWN" | python3 -c 'import sys,json;d=json.load(sys.stdin);print(d["statusCode"],d["error"]["code"])')"
 check "sin URL interna en la respuesta" 0 "$(echo "$DOWN" | grep -c "$API\|8080")"
+
+say "Sin APP_ORIGIN: las redirecciones no exponen el origen interno (0.0.0.0:8080 en producción, 2026-09-15)"
+docker run -d --name "$FC-sin-origen" --network "$NET" -p 3001:8080 -e SYNTROAUTH_API_URL="http://$API:8080" syntro-front:bff >/dev/null
+for _ in $(seq 1 30); do [ "$(status http://localhost:3001/health)" = 200 ] && break; sleep 1; done
+check "oauth start → Location relativa a /login?error=oauth_config" "/login?error=oauth_config" \
+  "$(curl -s -D - -o /dev/null 'http://localhost:3001/api/bff/oauth/start?provider=google' | hdr Location)"
+check "callback → Location relativa a /login?error=oauth_config" "/login?error=oauth_config" \
+  "$(curl -s -D - -o /dev/null 'http://localhost:3001/auth/callback?code=x&state=y' | hdr Location)"
+check "guard de página → Location relativa a /login" "/login" \
+  "$(curl -s -D - -o /dev/null 'http://localhost:3001/tenant' | hdr Location)"
+docker rm -f "$FC-sin-origen" >/dev/null 2>&1
 
 say "Logs"
 check "logs del front sin JWT" 0 "$(docker logs "$FC" 2>&1 | grep -c 'eyJ')"

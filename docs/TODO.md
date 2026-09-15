@@ -6,9 +6,10 @@
 
 ## Antes de mergear el BFF (lo tiene que hacer el usuario)
 
-- [ ] **Cargar `APP_ORIGIN` en Railway** (servicio `syntro-auth-frontend-test`) con el origen público del front
-      (`https://syntro-auth-frontend-test-production.up.railway.app`). Sin esa variable, el login con Google falla
-      cerrado (`/login?error=oauth_config`).
+- [ ] **Cargar `APP_ORIGIN` en Railway** (servicio `syntro-auth-frontend-test`, entorno `production`) con el origen
+      público del front (`https://syntro-auth-frontend-test-production.up.railway.app`). Sin esa variable, el login con
+      Google falla cerrado (`/login?error=oauth_config`). **Verificado el 2026-09-15 12:10, después del merge de #5:
+      la variable no está en `production` y no hay cambios staged.**
 - [ ] **Recomendado: `SYNTROAUTH_API_URL`** con el dominio privado del backend (`http://<RAILWAY_PRIVATE_DOMAIN>:<puerto>`).
       Sin ella, el servidor usa la URL pública.
 - [ ] **Puerto:** la imagen escucha en `PORT` (8080 por defecto). Revisar que Railway no tenga fijado el 80 de nginx.
@@ -97,3 +98,8 @@
     y el storage de tokens.
 
   Evidencia: `scripts/e2e/bff.sh` contra la imagen AOT del backend (resultado en el PR #5).
+- 2026-09-15 — **Bug en producción tras #5: sin `APP_ORIGIN`, "Continuar con Google" redirigía a
+  `https://0.0.0.0:8080/login?error=oauth_config`.** En los route handlers del servidor standalone,
+  `req.nextUrl.origin` es el origen interno. Reproducido en rojo con la imagen de #5 y corregido con
+  `src/server/redirect.ts`, que arma una `Location` relativa cuando falta `APP_ORIGIN`. En `proxy.ts` no aplica:
+  ahí `req.nextUrl` trae el host real, y una `Location` relativa da 500. Nuevo escenario en `scripts/e2e/bff.sh`: 74/74.

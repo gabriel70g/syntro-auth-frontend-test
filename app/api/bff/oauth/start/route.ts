@@ -3,6 +3,7 @@ import { callBackend, clientHeaders, readJson } from '@server/backend';
 import { appOrigin, uuidOrNull } from '@server/config';
 import { COOKIE, TTL_SECONDS, setCookie } from '@server/cookies';
 import { isRecord } from '@server/envelope';
+import { redirectResponse } from '@server/redirect';
 import {
     buildAuthorizeUrl,
     callbackUrl,
@@ -27,7 +28,7 @@ function clientIdFrom(body: unknown, provider: OAuthProvider): string | null {
 
 export async function GET(req: NextRequest) {
     const origin = appOrigin();
-    const toLogin = (code: string) => NextResponse.redirect(new URL(`/login?error=${code}`, origin ?? req.nextUrl.origin), 303);
+    const toLogin = (code: string) => redirectResponse(`/login?error=${code}`, 303);
 
     const provider = req.nextUrl.searchParams.get('provider')?.toLowerCase() ?? null;
     if (!origin || !isOAuthProvider(provider)) return toLogin('oauth_config');
