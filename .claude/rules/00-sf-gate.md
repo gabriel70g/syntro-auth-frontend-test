@@ -3,8 +3,8 @@
 > Ficha que consumen las skills `/sf-*` (nivel usuario). El método vive en la skill; los hechos de
 > este repo, acá. Sin esta ficha, la skill se detiene.
 >
-> Todo lo que sigue fue **verificado el 2026-09-15** contra el repo, contra un build con el toolchain
-> del Dockerfile y contra producción. Lo que no se pudo verificar está marcado como tal.
+> Verificado el **2026-09-15** contra el repo, contra la imagen del `Dockerfile` corriendo y contra la imagen
+> Native AOT del backend (E2E). Lo que no se pudo verificar está marcado como tal.
 
 ## Cómo se trabaja acá (aplica antes que cualquier otra cosa)
 
@@ -14,8 +14,7 @@
   del agente: se hacen, no se consultan.
 - **El tell.** Si la respuesta a *"¿por qué así?"* es un **principio** ("la pantalla no promete lo que
   el backend no hace"), saliste del código y estás moviendo un límite → preguntá. Si es una
-  **técnica** ("paso el refresh por `refreshAccessToken` para no disparar la detección de robo"),
-  decidí y seguí.
+  **técnica** ("el refresh lo hace el servidor para no disparar la detección de robo"), decidí y seguí.
 - ❌ NEVER meter código sin análisis previo. Si algo no queda claro, **se pregunta**.
 - ❌ NEVER afirmar una negación ("no existe X") sin decir **dónde** se buscó.
 - ❌ NEVER una sonda manual como evidencia: o queda como verificación repetible, o se dice
@@ -23,8 +22,7 @@
 - 🔒 **Ya no es un frontend de demo: es el frontend de un IdP y cumple reglas duras de seguridad**
   (decisión del usuario, 2026-09-15). Las reglas están en "Reglas duras de seguridad", más abajo, y no
   se relajan por "es solo el front" ni por "el backend ya lo valida". Un cambio que viola una no se
-  mergea. Nació como maqueta: encontrar restos es esperable, pero cada violación se ficha como **Bug**
-  en `docs/TODO.md`. El mapa de partida está en `docs/MAPA_PANTALLAS.md`.
+  mergea. Cada violación que se encuentre se ficha como **Bug** en `docs/TODO.md`.
 
 ## Qué es
 
@@ -34,133 +32,156 @@ global. En producción sobre **Railway**, servicio `syntro-auth-frontend-test`,
 `https://syntro-auth-frontend-test-production.up.railway.app` (sin dominio propio). Repo
 `gabriel70g/syntro-auth-frontend-test`.
 
-Next.js **16.1.6** (App Router) · React **19.2.3** · TypeScript · Tailwind 4 (`@tailwindcss/postcss`).
+Next.js **16.3.5** (App Router) · React **19.3.0** · TypeScript · Tailwind 4 · **Node 22** · **pnpm 9**.
 `package.json` es `frontend_test`, `private: true`. **Sin i18n**: todo el copy está en español,
 escrito en los componentes, y `app/layout.tsx` declara `<html lang="es">`.
 
-**Export estático** (`output: 'export'`, `next.config.ts`): no hay servidor Next. `pnpm build` genera
-`out/` y el `Dockerfile` lo sirve con **nginx** (`nginx.conf`). Las 15 `page.tsx` de `app/` son
-`'use client'`; el build **pre-renderiza su estado inicial** como HTML.
+**BFF con el servidor de Next** (desde 2026-09-15, `docs/PLAN_BFF.md`). `output: 'standalone'`: el
+`Dockerfile` corre `node server.js` (sin nginx). Piezas:
+
+| Pieza | Qué hace |
+|---|---|
+| `proxy.ts` | CSP con nonce por pedido y headers de seguridad; guards de páginas con sesión; `?token=` de los links del correo → cookie + 303 a la URL limpia |
+| `app/api/[...path]/route.ts` | Proxy al backend con **allowlist** (`src/server/routes.ts`) |
+| `app/api/bff/{session,logout,oauth/start}` | Claims sin token · logout · inicio de OAuth con `state` |
+| `app/auth/callback/route.ts` | Vuelta de OAuth resuelta en el servidor |
+| `src/server/*` | Solo servidor: cookies, sesión y refresh, CSRF, llamada al backend |
+| `src/flows/*` y `app/**/page.tsx` | Pantallas (Client); las de links del correo y `/login` tienen `page.tsx` de servidor |
+
+Todas las rutas son dinámicas (`await connection()` en el layout): el nonce lo exige.
 
 Rama única: **`main`**. Deploy automático desde `main` (verificado en los deploys de Railway).
 No hay `develop`.
 
+**Variables de runtime en Railway** (el servidor las lee al arrancar):
+- `APP_ORIGIN` — **obligatoria**: origen público del front. Sale de acá el `redirect_uri` de OAuth. Sin ella,
+  OAuth falla cerrado (`/login?error=oauth_config`).
+- `SYNTROAUTH_API_URL` — recomendada: el backend por la red privada de Railway. Sin ella usa
+  `NEXT_PUBLIC_API_URL` (build arg) y, si tampoco está, la URL pública de producción.
+- `SYNTROAUTH_REFRESH_COOKIE` — solo si el backend cambia `Auth:RefreshCookie:CookieName`.
+
 ## Gate
 
 ```
-pnpm lint      # eslint (eslint-config-next 16)
-pnpm build     # compila + typecheck + export estático a out/
+pnpm audit --prod --audit-level high   # 0 critical/high en dependencias de producción
+pnpm lint                              # 0 errores, 0 warnings
+pnpm build                             # typecheck + build standalone
+bash scripts/e2e/bff.sh                # E2E: imagen del front contra la imagen AOT del backend
 ```
 
-⚠️ **Correrlo con el toolchain del Dockerfile, no con el local.** El Dockerfile usa `node:20-alpine`
-y `pnpm@9` (el `pnpm-lock.yaml` es formato 9). En la máquina del maintainer corre Node 22 y pnpm 11,
+⚠️ **Correrlo con el toolchain del Dockerfile, no con el local.** En la máquina del maintainer corre pnpm 11
 y `pnpm install` aborta sin TTY (`ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY`). Reproducible:
 
 ```
-docker build --target builder -t syntro-front:builder .     # install --frozen-lockfile + build
-docker run --rm syntro-front:builder pnpm lint
+docker build --target builder -t syntro-front:builder .     # install --frozen-lockfile + lint + build
+docker run --rm syntro-front:builder pnpm audit --prod --audit-level high
+docker build -t syntro-front:bff .                          # imagen final (la que usa el E2E)
 ```
 
-❌ **El gate hoy no está verde:** `pnpm build` pasa; `pnpm lint` falla con 2 errores
-(`react-hooks/set-state-in-effect`) y 1 warning. Fichado en `docs/TODO.md`.
+✅ El `Dockerfile` corre `pnpm lint && pnpm build`: con el lint en rojo no hay imagen. CI
+(`.github/workflows/ci.yml`) corre audit + lint + build en cada PR.
 
-❌ **No hay CI ni tests.** El `Dockerfile` corre `pnpm run build` pero **no** `pnpm lint`: hoy `main`
-despliega con lint en rojo. Cuando un cambio se verifica a mano, se dice **qué** se miró y **dónde**.
+**E2E (`scripts/e2e/bff.sh`)**: levanta el backend con `syntroAuth/scripts/e2e/entorno.sh` (variable
+`SYNTROAUTH_REPO`, por defecto `../syntroAuth`) y el front en `http://localhost:3000`, y verifica cada
+fail-path de `docs/PLAN_BFF.md` con esperado vs obtenido: headers, nonce, guards, allowlist, CSRF, links,
+OAuth `state`, login con y sin 2FA, refresh concurrente, sesión revocada, backend caído y logs.
 
-⚠️ **Verificar lo que se sirve contra `out/` o contra producción**, no contra `pnpm dev`: el dev server
-no reproduce el export estático ni el fallback de nginx. Para ver el HTML de una ruta:
-`docker create syntro-front:<tag>` + `docker cp <id>:/usr/share/nginx/html ./out`.
+⚠️ **Verificar lo que se sirve contra la imagen corriendo**, no contra `pnpm dev`: en dev la CSP agrega
+`unsafe-eval` y el proxy no se comporta igual detrás de Turbopack.
 
 ## Invariantes
 
 - ❌ NEVER commitear directo a `main` sin decirlo: `main` **es** producción. ✅ ALWAYS rama + PR, y
   decirle al usuario que el merge publica.
-- ❌ NEVER una credencial, un token o un endpoint privado en `src/`: **todo lo que entra al bundle es
-  público**. Un `NEXT_PUBLIC_*` es público por definición.
-- ❌ NEVER guardar el access token fuera de `sessionStorage` ni el refresh token fuera de la cookie
-  HttpOnly (`src/common/lib/storage/auth-session.storage.ts`). `localStorage` solo guarda la empresa
-  activa, que no es secreta (`tenant.storage.ts`).
-- ❌ NEVER llamar a `/api/auth/refresh` directo. ✅ ALWAYS `refreshAccessToken()` de
-  `src/common/api/clients/http.helpers.ts`, que deja un solo refresh en vuelo: desde el 2026-09-15 el
-  backend trata dos refresh simultáneos con el mismo token como robo y revoca todas las sesiones.
-- ❌ NEVER tratar un guard del front como autorización. Los guards (`readStoredAccessToken`, el rol del
-  token) solo deciden qué se muestra; la autorización la aplica el backend. Corolario: el HTML
-  estático de una ruta "protegida" es público.
-- ❌ NEVER decidir el destino después del login en cada pantalla. ✅ ALWAYS un único punto de decisión
-  (hoy `src/common/lib/home-path.ts`, que no todos los caminos usan — ver `docs/TODO.md`).
+- ❌ NEVER un token (access, refresh, temporal de 2FA, de link, `state` de OAuth) al alcance del JavaScript de la
+  página: ni en `sessionStorage`, ni en `localStorage`, ni en el JSON que devuelve el BFF, ni en la URL.
+  ✅ ALWAYS en cookies `__Host-` HttpOnly que escribe `src/server/cookies.ts`. `localStorage` solo guarda la
+  empresa activa, que no es secreta (`tenant.storage.ts`).
+- ❌ NEVER llamar al backend desde el navegador. ✅ ALWAYS `/api/*` del mismo origen (`bffFetch` /
+  `authenticatedFetch` de `src/common/api/clients/http.helpers.ts`). Un endpoint nuevo del backend no existe para
+  el front hasta que se agrega a `src/server/routes.ts` con su `auth`, `capture` e `inject`.
+- ❌ NEVER importar `src/server/*` desde un módulo `'use client'`: arrastra código de servidor al bundle.
+- ❌ NEVER refrescar fuera de `src/server/session.ts`. Deja un solo refresh en vuelo por token y reusa la
+  rotación unos segundos: el backend trata dos refresh con el mismo token como robo (A11). ⚠️ Vale con **una
+  instancia**; con réplicas el lock va a Redis.
+- ❌ NEVER reintentar un 401 que no traiga `WWW-Authenticate`: es un 401 de negocio (TOTP incorrecto) y
+  reintentarlo reconsume el código (`src/server/proxy-handler.ts`, `isBearerRejection`).
+- ❌ NEVER un route handler con método no seguro sin `isSameOriginRequest` (CSRF). El proxy lo aplica solo; los
+  handlers propios (`/api/bff/*`) lo llaman explícito.
+- ❌ NEVER tratar un guard como autorización. `proxy.ts` y los claims solo deciden qué se muestra; la
+  autorización la aplica el backend.
+- ❌ NEVER decidir el destino después del login en cada pantalla. ✅ ALWAYS `homePathForRole`
+  (`src/common/lib/home-path.ts`), también en el callback de OAuth.
 - ❌ NEVER prometer en una pantalla una capacidad que el backend no tiene. El estado real del backend
   está en `syntroAuth/_docs/AUDITORIA_SEGURIDAD_2026-09-15.md` y en su `CHANGELOG.md`.
 - ❌ NEVER mostrar ni loguear un secreto del backend después de su única vez (semilla TOTP,
   `key_secret` de grupo cuando exista).
-- ❌ NEVER `npm` ni `yarn`: el gestor es **pnpm 9** (lockfile formato 9). Un `package-lock.json` que
-  aparezca es un lockfile en conflicto.
+- ❌ NEVER `npm` ni `yarn`: el gestor es **pnpm 9** (`packageManager` en `package.json`). Un
+  `package-lock.json` que aparezca es un lockfile en conflicto.
 - ✅ ALWAYS que un cambio observable quede reflejado en `docs/TODO.md`.
 
 ## Reglas duras de seguridad
 
-> Vigentes desde 2026-09-15. Un cambio que viola una **no se mergea**; lo que hoy las viola está fichado
-> como Bug en `docs/TODO.md`. Se verifican contra el HTML servido y los headers reales, no contra el JSX.
+> Vigentes desde 2026-09-15. Un cambio que viola una **no se mergea**. Se verifican contra la imagen corriendo
+> (`scripts/e2e/bff.sh`), no contra el JSX.
 
 - ❌ NEVER desplegar con dependencias de producción con vulnerabilidades **critical** o **high** conocidas.
-  ✅ ALWAYS `pnpm audit --prod` con el toolchain del Dockerfile antes del PR; una excepción se documenta
-  con el motivo (p. ej. "solo afecta a servidores Windows y acá sirve nginx") y fecha de revisión.
-- ❌ NEVER servir sin headers de seguridad. ✅ ALWAYS en `nginx.conf`, en **todas** las `location`:
-  `Content-Security-Policy` (sin `unsafe-inline` ni `unsafe-eval` en `script-src`),
+  ✅ ALWAYS `pnpm audit --prod --audit-level high` (CI lo corre); una excepción se documenta con el motivo y fecha
+  de revisión. Las de devDependencies se listan aparte en `docs/TODO.md`.
+- ❌ NEVER servir sin headers de seguridad. ✅ ALWAYS desde `proxy.ts`, en páginas y en `/api`:
+  `Content-Security-Policy` con nonce (sin `unsafe-inline` ni `unsafe-eval` en `script-src`),
   `Strict-Transport-Security`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`,
-  `frame-ancestors 'none'` (+ `X-Frame-Options: DENY`) y `Permissions-Policy`. Verificado con `curl -I`
-  contra el contenedor.
-- ❌ NEVER un flujo OAuth sin `state` aleatorio atado a la sesión del navegador y verificado a la vuelta
-  (anti-CSRF / login forzado). ✅ ALWAYS generarlo con `crypto.getRandomValues`, guardarlo en
-  `sessionStorage` y rechazar el callback si no coincide.
-- ❌ NEVER dejar un token de un solo uso (reset, verificación de email, baja de 2FA) en la URL después de
-  leerlo. ✅ ALWAYS sacarlo con `history.replaceState` al montar la pantalla.
-- ❌ NEVER guardar tokens fuera de `sessionStorage` (access, temporal de 2FA) o de la cookie HttpOnly
-  (refresh). ❌ NEVER un token, un secreto o un email en `console.*`, en la URL propia o en `localStorage`.
+  `frame-ancestors 'none'` + `X-Frame-Options: DENY` y `Permissions-Policy`.
+- ❌ NEVER un flujo OAuth sin `state` aleatorio atado al navegador y verificado a la vuelta. ✅ ALWAYS en el
+  servidor: `/api/bff/oauth/start` lo genera y lo guarda en cookie HttpOnly, `/auth/callback` lo compara en
+  tiempo constante y lo consume. `redirect_uri` ❌ NEVER desde el header Host: ✅ ALWAYS `APP_ORIGIN`.
+- ❌ NEVER dejar un token de un solo uso (reset, verificación de email, baja de 2FA) en la URL. ✅ ALWAYS
+  `proxy.ts` lo pasa a cookie y redirige (303) a la URL limpia antes de servir la pantalla.
+- ❌ NEVER un token, un secreto o un email en `console.*` ni en logs del servidor.
 - ❌ NEVER `dangerouslySetInnerHTML`, `innerHTML` o `eval` con datos que vengan de la API o de la URL.
 - ❌ NEVER navegar a una URL tomada de la query o del storage sin validarla contra una lista cerrada
-  (open redirect). Hoy todos los destinos son rutas fijas: mantenerlo.
-- ❌ NEVER mostrar datos sensibles en el estado inicial de una pantalla: el HTML estático es público aunque
-  la ruta tenga guard.
+  (open redirect). Hoy todos los destinos son rutas fijas; `/login?error=` solo muestra mensajes de
+  `oauth-errors.data.ts`.
+- ❌ NEVER un proxy abierto: `/api/*` solo reenvía lo que está en `src/server/routes.ts`, y el path se
+  reconstruye rechazando `.`, `..` y barras.
 - ❌ NEVER prometer en pantalla una capacidad de seguridad que el backend no tiene (ver "Invariantes").
-- ✅ ALWAYS gate verde (lint + build + audit) y el `Dockerfile` corriendo el lint: nada se despliega en rojo.
+- ✅ ALWAYS gate verde (audit + lint + build + E2E) antes del PR.
 
 ## Gotchas conocidos
 
-**Next mete scripts inline en cada página del export** (6 por página en 16.1.6). Con export estático no
-hay nonce: la CSP sin `unsafe-inline` necesita los **hashes** de esos scripts, calculados sobre el
-`out/` de **ese** build (cambian en cada build). ❌ NEVER copiar hashes a mano en `nginx.conf`.
+**El nonce exige render dinámico.** Next aplica el nonce leyendo el `Content-Security-Policy` del pedido que
+arma `proxy.ts`; una página prerenderizada en el build no tiene nonce y sus scripts quedan bloqueados. Por eso
+`await connection()` en `app/layout.tsx`. ❌ NEVER sacarlo ni agregar `export const dynamic = 'force-static'`.
 
-**`add_header` en una `location` de nginx anula los del `server`.** Si una `location` declara
-`Cache-Control` con `add_header`, pierde todos los headers de seguridad heredados. Van en un snippet
-incluido en cada `location`.
+**`style-src` lleva `'unsafe-inline'`.** React escribe atributos `style=` y los atributos no admiten nonce. Si
+se agrega un nonce a `style-src`, el navegador ignora `'unsafe-inline'` y se rompen los estilos inline.
 
+**El refresh del backend llega en `Set-Cookie`, no en el JSON** (`IncludeRefreshTokenInJsonBody` es false por
+defecto), con el valor codificado por ASP.NET. `refreshFromSetCookie` lo decodifica. El BFF lo devuelve en el
+body de `/api/auth/refresh`; el backend lee cookie **o** body y, sin `Origin`, `RefreshOriginGuard` no aplica.
 
-**El export estático no tiene servidor.** Sin middleware, sin route handlers, sin headers por ruta, sin
-redirects de Next: todo eso vive en `nginx.conf` o no existe. ❌ NEVER agregar código que asuma un
-servidor Next (`headers()`, `cookies()`, `middleware.ts`): el build de export lo rechaza o lo ignora.
+**Dos clases de 401 en el backend.** El esquema Bearer (token vencido, inválido, revocado) responde con
+`WWW-Authenticate`; los endpoints (TOTP incorrecto, `STEP_UP_INVALID_FACTOR`) no. Solo el primero se refresca y
+reintenta.
 
-**nginx no manda headers de seguridad.** Verificado en producción el 2026-09-15 sobre `/login`: solo
-`cache-control` y `server`. Sin CSP, sin HSTS, sin `X-Frame-Options`. Con el access token en
-`sessionStorage`, un XSS se lo lleva.
+**El E2E del backend no tiene clave RSA.** El cifrado asimétrico solo se registra con S3: en
+`entorno.sh`, `/api/auth/security/public-key` responde `404 ASYMMETRIC_ENCRYPTION_NOT_CONFIGURED` y el login
+acepta la password sin cifrar. En ese entorno el login **desde la UI** falla (`encryptPassword` exige la clave):
+el E2E manda la password por `curl`. En producción la clave existe.
 
-**Toda ruta inexistente devuelve 200.** `try_files … /index.html` en `nginx.conf`; verificado en
-producción (`/no-existe-xyz` → 200).
+**Cookies `__Host-` sobre `http://localhost`.** Llevan `Secure`: Chrome y curl las aceptan en `localhost`
+(lo tratan como origen seguro); con otro host en http se descartan.
 
-**Las pantallas con `Suspense` + `useSearchParams` se sirven como "Cargando…".** `/reset-password`,
-`/verify-email` y `/settings/security/mfa/disable-confirm` no tienen contenido en el HTML: todo aparece
-después de hidratar.
+**El contenedor del front bloquea `e2e_down`.** Si queda conectado a `sa-e2e-net`, la red no se borra y el
+próximo `e2e_up` falla con `network ... already exists`. `scripts/e2e/bff.sh` lo borra primero.
 
-**El tenant de cada request sale del navegador.** `getDefaultHeaders()` (`src/common/lib/config.ts:28-33`)
-manda `X-Tenant-Id` con la empresa activa de `localStorage` o, si no hay, `DEFAULT_TENANT_ID`
-(`a0000000-0000-0000-0000-000000000001`, el tenant de fábrica). El backend da prioridad al tenant del
-token cuando hay sesión (AT-3, corregido en el hotfix 2).
+**La IP que ve el backend es la del servidor de Next.** El BFF reenvía `X-Forwarded-For`, pero el backend no la
+usa sin `KnownNetworks` en `ForwardedHeaders` (`syntroAuth/src/SyntroAuth.Api/Program.cs`). Afecta rate limit y
+binding de IP. Ya pasaba antes con el proxy de Railway: fichado como pendiente del backend (M1–M3).
 
-**`API_URL` cae en producción por defecto** (`config.ts:7-9`): un build sin `NEXT_PUBLIC_API_URL`
-apunta a la API real.
-
-**El `Dockerfile` solo recibe `NEXT_PUBLIC_API_URL` como build arg.** `NEXT_PUBLIC_TENANT_ID` y
-`NEXT_PUBLIC_REDIRECT_URI` no se declaran como `ARG`: sin verificar si Railway las inyecta igual; si
-no, el build usa los valores por defecto de `config.ts`.
+**`X-Tenant-Id` sale del navegador.** `getDefaultHeaders()` (`src/common/lib/config.ts`) manda la empresa activa
+de `localStorage` o `DEFAULT_TENANT_ID`; el BFF solo reenvía un UUID válido. El backend da prioridad al tenant del
+token cuando hay sesión (AT-3, hotfix 2).
 
 **Las skills `/sf-*` nacieron para el sitio de SyntropySoft.** Acá no aplican la paridad `en`/`es`
 (no hay i18n) ni lo de SEO/indexación (es una app detrás de login). El resto del método sí.
@@ -168,4 +189,5 @@ no, el build usa los valores por defecto de `config.ts`.
 ## Fuente de verdad del estado
 
 `docs/TODO.md` — Bugs y Gaps abiertos, con lo hecho al final. Es lo primero que se consulta y lo
-último que se actualiza. El mapa de pantallas de partida está en `docs/MAPA_PANTALLAS.md`.
+último que se actualiza. El mapa de pantallas de partida está en `docs/MAPA_PANTALLAS.md` (anterior al BFF) y el
+plan del BFF en `docs/PLAN_BFF.md`.
