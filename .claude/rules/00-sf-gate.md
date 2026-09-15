@@ -175,6 +175,11 @@ el E2E manda la password por `curl`. En producción la clave existe.
 **El contenedor del front bloquea `e2e_down`.** Si queda conectado a `sa-e2e-net`, la red no se borra y el
 próximo `e2e_up` falla con `network ... already exists`. `scripts/e2e/bff.sh` lo borra primero.
 
+**Railway dice `builder: RAILPACK` pero construye con el `Dockerfile`.** La config del servicio muestra
+RAILPACK, y aun así los logs de build del deploy `c8b4c35b` (2026-09-15) ejecutan las stages del `Dockerfile`
+(`[builder 7/7]`, `COPY nginx.conf`). Lo que manda es el `Dockerfile` de la raíz, no la config. Railway inyecta
+`PORT` y `server.js` lo respeta.
+
 **La IP que ve el backend es la del servidor de Next.** El BFF reenvía `X-Forwarded-For`, pero el backend no la
 usa sin `KnownNetworks` en `ForwardedHeaders` (`syntroAuth/src/SyntroAuth.Api/Program.cs`). Afecta rate limit y
 binding de IP. Ya pasaba antes con el proxy de Railway: fichado como pendiente del backend (M1–M3).
