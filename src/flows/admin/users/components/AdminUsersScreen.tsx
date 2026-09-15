@@ -40,6 +40,9 @@ export function AdminUsersScreen() {
                 </div>
                 {c.selfEmail && (
                     <div className="sec-session">
+                        <a className="sec-nav" href="/tenant">
+                            Empresa y aplicaciones
+                        </a>
                         <span className="sec-session__email">{c.selfEmail}</span>
                         <button className="sec-logout" onClick={() => void c.logout()}>
                             Salir

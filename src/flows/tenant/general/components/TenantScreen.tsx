@@ -111,7 +111,12 @@ export function TenantScreen() {
                     );
                 })()}
 
-                <div className="text-center mt-6">
+                <div className="flex justify-center gap-6 mt-6">
+                    {c.isGlobalAdmin && (
+                        <a href="/admin/users" className="text-[var(--color-info-fg)] text-sm">
+                            Consola de usuarios
+                        </a>
+                    )}
                     <a href="/dashboard" className="text-[var(--color-info-fg)] text-sm">
                         Dashboard
                     </a>
