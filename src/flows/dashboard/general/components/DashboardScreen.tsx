@@ -53,7 +53,7 @@ export function DashboardScreen() {
                         <p className="text-[var(--color-text-medium)] text-sm mb-4 leading-relaxed">
                             Este login utilizó los siguientes controles de seguridad. Tus credenciales nunca viajaron en texto plano.
                         </p>
-                        <p className="text-[var(--color-text-muted)] text-xs mb-5 leading-relaxed italic">
+                        <p className="text-[var(--color-text-muted)] text-xs mb-5 leading-relaxed">
                             Cada capa asume su responsabilidad (SRP): la validación se realiza en cliente antes de enviar, evitando consumir recursos de backend en lo que el frontend puede resolver de forma eficiente. El backend cumple los lineamientos BCRA Com. &quot;A&quot; 7724/7783, NIST 800-63B AAL2 y OWASP ASVS L2.
                         </p>
 
@@ -108,7 +108,7 @@ export function DashboardScreen() {
                                         <DashboardClaimRow label="aud (audiencia)" value={claims.aud} />
                                     </div>
                                 </div>
-                                <p className="text-[var(--color-text-dim)] text-[0.7rem] mt-2 italic">
+                                <p className="text-[var(--color-text-dim)] text-xs mt-2">
                                     Los claims opcionales se omiten cuando no están presentes en el token (p. ej. <code>pv</code> sin <code>X-App-Id</code>, <code>step_up_exp</code> sin step-up reciente).
                                 </p>
                             </div>
@@ -124,7 +124,7 @@ export function DashboardScreen() {
                                     <span className="flex-1">
                                         <span className="inline-flex items-center gap-1.5 flex-wrap">
                                             <strong className="text-[var(--color-text-strong)]">{f.name}</strong>
-                                            <span className={`${TAG_STYLES[f.tag]} text-[0.65rem] font-bold px-1.5 py-0.5 rounded font-mono tracking-wide`}>
+                                            <span className={`${TAG_STYLES[f.tag]} text-xs font-bold px-1.5 py-0.5 rounded font-mono tracking-wide`}>
                                                 {f.tag}
                                             </span>
                                         </span>

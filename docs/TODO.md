@@ -104,3 +104,19 @@
   `req.nextUrl.origin` es el origen interno. Reproducido en rojo con la imagen de #5 y corregido con
   `src/server/redirect.ts`, que arma una `Location` relativa cuando falta `APP_ORIGIN`. En `proxy.ts` no aplica:
   ahí `req.nextUrl` trae el host real, y una `Location` relativa da 500. Nuevo escenario en `scripts/e2e/bff.sh`: 74/74.
+- 2026-09-15 — **Legibilidad: contraste WCAG AA y fondos carbón** (pedido del usuario: "muy negro, cuesta leer";
+  eligió "AA + fondos más claros").
+  - **Problema, medido sobre la tarjeta:**
+    - `text-dim` daba 3.65:1 y `text-disabled` 2.10:1. Los dos se usaban en las etiquetas y aclaraciones del
+      dashboard, con 10–11 px y en itálica.
+    - Las pantallas de 2FA, la baja de 2FA y verify-email usaban otra paleta escrita a mano (slate/neutral).
+    - El azul de acción, `#3b82f6`, con texto blanco daba 3.68:1.
+  - **Ahora:**
+    - Superficies carbón (`#17181c`→`#212227`, tarjeta `#28292f`).
+    - Todo token de texto con ≥4.5:1 sobre fondo, tarjeta, panel interno e input: `dim` 6.0 y `muted` 7.6.
+    - `text-disabled` (4.3) queda solo para placeholders y controles deshabilitados.
+    - Tokens nuevos: `surface-raised`, `action` (blanco 5.17:1).
+    - Esas pantallas pasan a los tokens.
+    - Piso de 12 px para el texto; sin itálica en las aclaraciones.
+  - **Verificado** en la imagen local sin sesión (login, registro, baja de 2FA, verify-email): la consola no mostró errores.
+  - **Sin verificar en navegador:** dashboard, admin, empresa y 2FA de cuenta, que piden sesión.

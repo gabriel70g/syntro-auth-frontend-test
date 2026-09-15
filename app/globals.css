@@ -13,28 +13,37 @@
   --color-gold-glow: rgba(212, 175, 55, 0.28);
   --color-gold-glow-soft: rgba(212, 175, 55, 0.08);
 
-  /* Surfaces (near-black / obsidiana) ──────────────────────────────── */
-  --color-surface-bg-from: #0a0a0c;
-  --color-surface-bg-to: #141416;
-  --color-surface-card: rgba(20, 20, 22, 0.72);
-  --color-surface-card-strong: rgba(20, 20, 22, 0.92);
-  --color-surface-input: rgba(10, 10, 12, 0.6);
-  --color-surface-input-focus: rgba(10, 10, 12, 0.82);
-  --color-surface-inner: rgba(10, 10, 12, 0.7);
+  /* Surfaces (carbón) ──────────────────────────────────────────────────
+     2026-09-15: de casi negro a carbón por legibilidad (pedido del usuario). La tarjeta se separa del fondo y
+     todo token de texto de abajo pasa WCAG AA (≥4.5:1) sobre fondo, tarjeta, panel interno e input. */
+  --color-surface-bg-from: #17181c;
+  --color-surface-bg-to: #212227;
+  --color-surface-card: rgba(42, 43, 49, 0.88);
+  --color-surface-card-strong: rgba(42, 43, 49, 0.96);
+  --color-surface-input: rgba(26, 27, 32, 0.85);
+  --color-surface-input-focus: rgba(26, 27, 32, 0.95);
+  --color-surface-inner: rgba(28, 29, 34, 0.85);
+  /* Botones secundarios y paneles elevados sobre la tarjeta */
+  --color-surface-raised: #34353c;
+  --color-surface-raised-hover: #3f4048;
 
-  /* Borders (platino tenue + toque oro) ─────────────────────────────── */
-  --color-border-subtle: rgba(214, 214, 206, 0.08);
-  --color-border-soft: rgba(214, 214, 206, 0.16);
+  /* Borders (platino + toque oro) ───────────────────────────────────── */
+  --color-border-subtle: rgba(214, 214, 206, 0.14);
+  --color-border-soft: rgba(214, 214, 206, 0.24);
 
-  /* Text (platino / marfil) ─────────────────────────────────────────── */
-  --color-text-strong: #f5f3ec;
-  --color-text-medium: #d6d6ce;
-  --color-text-muted: #9a9a93;
-  --color-text-dim: #6e6e68;
-  --color-text-disabled: #4a4a44;
+  /* Text (platino / marfil) — contraste medido sobre la tarjeta ─────── */
+  --color-text-strong: #f7f5ef;   /* 13.3:1 */
+  --color-text-medium: #e2e1d9;   /* 11.1:1 */
+  --color-text-muted: #bdbcb4;    /*  7.6:1 */
+  --color-text-dim: #a8a79f;      /*  6.0:1 */
+  --color-text-disabled: #8d8c85; /*  4.3:1 — solo placeholders y controles deshabilitados */
+
+  /* Acción primaria azul (pantallas de 2FA): texto blanco ≥5:1 ─────── */
+  --color-action-from: #2563eb;
+  --color-action-to: #1d4ed8;
 
   /* Feedback (danger / success / info=hielo) ───────────────────────── */
-  --color-danger-fg: #f0a3a3;
+  --color-danger-fg: #f4b0b0;
   --color-danger-bg: rgba(224, 75, 74, 0.1);
   --color-danger-border: rgba(224, 75, 74, 0.32);
   --color-danger-solid: #e04b4a;
@@ -235,7 +244,7 @@ body {
   .btn-ghost {
     width: 100%;
     padding: 0.75rem 1rem;
-    background: rgba(15, 23, 42, 0.5);
+    background: var(--color-surface-raised);
     color: var(--color-text-strong);
     font-weight: 500;
     border: 1px solid var(--color-border-soft);
@@ -244,7 +253,7 @@ body {
     transition: all 0.2s ease;
   }
   .btn-ghost:hover:not(:disabled) {
-    background: rgba(15, 23, 42, 0.7);
+    background: var(--color-surface-raised-hover);
     border-color: var(--color-gold-deep);
   }
 

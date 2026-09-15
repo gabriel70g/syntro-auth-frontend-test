@@ -25,16 +25,16 @@ export function RegisterSuccessPanel({ email, tenantName }: Props) {
                 ¡Revisa tu correo!
             </h2>
 
-            <p className="text-neutral-400 mb-6 leading-relaxed">
+            <p className="text-[var(--color-text-muted)] mb-6 leading-relaxed">
                 Hemos enviado un enlace de confirmación a <br />
                 <span className="text-white font-medium">{email}</span>
             </p>
 
-            <p className="text-neutral-400 mb-6 leading-relaxed">
+            <p className="text-[var(--color-text-muted)] mb-6 leading-relaxed">
                 Empresa: <span className="text-white font-medium">{tenantName}</span>
             </p>
 
-            <div className="bg-neutral-900/50 p-4 rounded-lg border border-neutral-800 mb-8 text-sm text-neutral-500">
+            <div className="bg-[var(--color-surface-card-strong)]/50 p-4 rounded-lg border border-[var(--color-border-soft)] mb-8 text-sm text-[var(--color-text-dim)]">
                 <p>¿No lo encuentras?</p>
                 <ul className="list-disc text-left pl-6 mt-2 space-y-1">
                     <li>Revisa la carpeta de Spam.</li>
@@ -44,7 +44,7 @@ export function RegisterSuccessPanel({ email, tenantName }: Props) {
 
             <Link
                 href="/login"
-                className="block w-full bg-neutral-800 hover:bg-neutral-700 text-white font-medium py-3 rounded-lg transition-colors border border-neutral-700"
+                className="block w-full bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface-raised-hover)] text-white font-medium py-3 rounded-lg transition-colors border border-[var(--color-border-soft)]"
             >
                 Volver al Inicio
             </Link>
