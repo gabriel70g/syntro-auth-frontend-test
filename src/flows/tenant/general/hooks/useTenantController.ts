@@ -1,14 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import type { ApiErrorView, KitFormat, MyTenant } from '@common/domain/tenant.domain';
 import { fetchIntegrationKit, getMyTenant, postCreateTenant } from '@common/api/clients/tenants.http.client';
-import { refreshAccessToken } from '@common/api/clients/http.helpers';
+import { renewSession } from '@common/api/clients/session.http.client';
 import { mapCreateTenantResponse, mapMyTenantResponse } from '@common/api/mappers/tenant.mapper';
 import { mapApiError } from '@common/api/mappers/api-error.mapper';
-import { decodeJwtPayload } from '@common/lib/jwt';
-import { readStoredAccessToken } from '@common/lib/storage/auth-session.storage';
+import { useSessionClaims } from '@common/hooks/useSessionClaims';
 import { writeActiveTenant } from '@common/lib/storage/tenant.storage';
 
 type State =
@@ -28,31 +26,29 @@ const KIT_FILE_NAME: Record<KitFormat, (slug: string) => string> = {
  * para obtener un token con el tenant nuevo); si tiene, descarga el kit de integración.
  */
 export function useTenantController() {
-    const router = useRouter();
     const [state, setState] = useState<State>({ kind: 'loading' });
     const [companyName, setCompanyName] = useState('');
     const [actionError, setActionError] = useState<ApiErrorView | null>(null);
     const [busy, setBusy] = useState(false);
-    const [isGlobalAdmin, setIsGlobalAdmin] = useState(false);
+    // Solo decide qué links se muestran; la autorización la aplica el backend.
+    const { claims } = useSessionClaims();
+    const isGlobalAdmin = claims?.role === 'admin';
 
     const load = useCallback(async () => {
-        setState({ kind: 'loading' });
         const http = await getMyTenant();
         const outcome = mapMyTenantResponse(http.status, http.body);
         if (outcome.kind === 'owned') writeActiveTenant({ id: outcome.tenant.id, name: outcome.tenant.name });
         setState(outcome);
     }, []);
 
+    const reload = useCallback(async () => {
+        setState({ kind: 'loading' });
+        await load();
+    }, [load]);
+
     useEffect(() => {
-        const token = readStoredAccessToken();
-        if (!token) {
-            router.replace('/login');
-            return;
-        }
-        // Solo decide qué links se muestran; la autorización la aplica el backend.
-        setIsGlobalAdmin(decodeJwtPayload(token)?.role === 'admin');
         void load();
-    }, [load, router]);
+    }, [load]);
 
     const createTenant = useCallback(
         async (e: React.FormEvent<HTMLFormElement>) => {
@@ -73,15 +69,15 @@ export function useTenantController() {
                 }
                 writeActiveTenant({ id: outcome.tenantId, name: outcome.tenantName });
                 // El token vigente todavía lleva el tenant anterior.
-                if (outcome.requiresTokenRefresh && !(await refreshAccessToken())) {
+                if (outcome.requiresTokenRefresh && !(await renewSession())) {
                     setActionError({ code: 'REFRESH_REQUIRED', message: 'Volvé a iniciar sesión para usar la empresa nueva' });
                 }
-                await load();
+                await reload();
             } finally {
                 setBusy(false);
             }
         },
-        [companyName, load]
+        [companyName, reload]
     );
 
     const downloadKit = useCallback(async (tenant: MyTenant, format: KitFormat) => {
@@ -108,5 +104,5 @@ export function useTenantController() {
         }
     }, []);
 
-    return { state, companyName, setCompanyName, actionError, busy, createTenant, downloadKit, reload: load, isGlobalAdmin };
+    return { state, companyName, setCompanyName, actionError, busy, createTenant, downloadKit, reload, isGlobalAdmin };
 }

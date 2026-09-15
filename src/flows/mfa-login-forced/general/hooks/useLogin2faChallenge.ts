@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { postLogin2fa } from '@common/api/clients/auth.http.client';
+import { mapApiError } from '@common/api/mappers/api-error.mapper';
 import { mapLoginResponseBodyToResult } from '@common/api/mappers/login-result.mapper';
-import { clearMfaTempToken, readMfaTempToken, writeAuthSessionToStorage } from '@common/lib/storage/auth-session.storage';
+import { homePathForRole } from '@common/lib/home-path';
 
 /**
- * Why: Completar login con TOTP tras mfa_required.
+ * Why: Completar login con TOTP tras mfa_required. El token temporal vive en una cookie HttpOnly del BFF: si
+ * venció, se vuelve al login.
  */
 export function useLogin2faChallenge() {
     const router = useRouter();
@@ -15,30 +17,23 @@ export function useLogin2faChallenge() {
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    const [tempToken, setTempToken] = useState<string | null>(null);
 
     useEffect(() => {
-        if (typeof window === 'undefined') return;
-        const t = readMfaTempToken();
-        if (!t) {
-            router.replace('/login');
-            return;
-        }
-        setTempToken(t);
         inputRefs.current[0]?.focus();
-    }, [router]);
+    }, []);
 
-    const verifyCode = useCallback(async (fullCode: string, token: string | null) => {
-        if (!token) return;
+    const verifyCode = useCallback(async (fullCode: string) => {
         setIsLoading(true);
         setError('');
         try {
-            const { ok, body } = await postLogin2fa({ tempToken: token, code: fullCode });
+            const { ok, body } = await postLogin2fa({ code: fullCode });
             const result = mapLoginResponseBodyToResult(ok, body);
             if (result.success && result.session) {
-                writeAuthSessionToStorage(result.session);
-                clearMfaTempToken();
-                router.push('/admin/users');
+                router.push(homePathForRole(result.session.role));
+                return;
+            }
+            if (mapApiError(0, body, '').code === 'MFA_SESSION_EXPIRED') {
+                router.replace('/login');
                 return;
             }
             setError(result.error || 'Código inválido');
@@ -56,7 +51,7 @@ export function useLogin2faChallenge() {
         setCode(next);
         if (value && index < 5) inputRefs.current[index + 1]?.focus();
         if (value && index === 5 && next.every((c) => c)) {
-            void verifyCode(next.join(''), tempToken);
+            void verifyCode(next.join(''));
         }
     };
 
@@ -70,7 +65,7 @@ export function useLogin2faChallenge() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        void verifyCode(code.join(''), tempToken);
+        void verifyCode(code.join(''));
     };
 
     return {
@@ -78,7 +73,6 @@ export function useLogin2faChallenge() {
         inputRefs,
         isLoading,
         error,
-        tempToken,
         handleInputChange,
         handleKeyDown,
         handleSubmit,

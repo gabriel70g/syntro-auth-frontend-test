@@ -4,7 +4,6 @@ import { SyntropySoftLogoCompact } from '@common/components/AuthFlowBrandMark';
 import { PageShell } from '@common/components/PageShell';
 import { GlassCard } from '@common/components/GlassCard';
 import { Banner } from '@common/components/Banner';
-import { clearAuthSessionStorage } from '@common/lib/storage/auth-session.storage';
 import { postAuthLogout } from '@common/api/clients/auth.http.client';
 import { formatRelative } from '@common/lib/jwt';
 import {
@@ -23,9 +22,8 @@ export function DashboardScreen() {
     const { claims, formatExpiry } = useDashboardSession();
 
     const handleLogout = async () => {
-        await postAuthLogout().catch(() => { });
-        clearAuthSessionStorage();
-        window.location.href = '/login';
+        await postAuthLogout();
+        window.location.assign(new URL('/login', window.location.origin));
     };
 
     return (

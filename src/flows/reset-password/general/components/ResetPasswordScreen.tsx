@@ -1,21 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { AuthFlowBrandMark } from '@common/components/AuthFlowBrandMark';
 import { LoginArtBackground } from '@flows/login/general/components/LoginArtBackground';
 import { useResetPasswordPageController } from '@flows/reset-password/general/hooks/useResetPasswordPageController';
 import '@flows/login/general/login.css';
 
 /**
- * Why: Nueva contraseña tras click en el correo (`?token=`).
+ * Why: Nueva contraseña tras click en el correo. El token lo guardó el servidor en una cookie HttpOnly al abrir el
+ * link (la URL ya no lo tiene); `hasToken` dice si esa cookie está.
  */
-export function ResetPasswordScreen() {
-    const searchParams = useSearchParams();
-    const token = searchParams.get('token')?.trim() ?? '';
-    const c = useResetPasswordPageController(token);
+export function ResetPasswordScreen({ hasToken }: { hasToken: boolean }) {
+    const c = useResetPasswordPageController(hasToken);
 
-    const missingToken = !token;
+    const missingToken = !hasToken;
 
     return (
         <div className="login-container">

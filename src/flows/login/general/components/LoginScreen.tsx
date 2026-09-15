@@ -11,8 +11,8 @@ import '@flows/login/general/login.css';
 /**
  * Why: Composición del flujo login (presentación + hook).
  */
-export function LoginScreen() {
-    const c = useLoginPageController();
+export function LoginScreen({ initialError = '' }: { initialError?: string }) {
+    const c = useLoginPageController(initialError);
 
     return (
         <div className="login-container">

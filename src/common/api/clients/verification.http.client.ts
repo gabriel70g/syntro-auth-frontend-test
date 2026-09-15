@@ -1,19 +1,7 @@
-import { API_URL, API_FETCH_CREDENTIALS, getDefaultHeaders, mergeHeaders } from '@common/lib/config';
-import { readJsonSafe } from '@common/api/clients/http.helpers';
+import { bffFetch } from '@common/api/clients/http.helpers';
 
-export async function postVerifyEmailConfirm(token: string, tenantId?: string): Promise<{
-    ok: boolean;
-    body: unknown;
-}> {
-    const headers = tenantId
-        ? mergeHeaders(getDefaultHeaders(), { 'X-Tenant-Id': tenantId })
-        : getDefaultHeaders();
-
-    const response = await fetch(`${API_URL}/api/auth/verify-email/confirm`, {
-        method: 'POST',
-        credentials: API_FETCH_CREDENTIALS,
-        headers,
-        body: JSON.stringify({ token }),
-    });
-    return { ok: response.ok, body: await readJsonSafe(response) };
+/** El token y la empresa del link del correo los agrega el BFF desde su cookie. */
+export async function postVerifyEmailConfirm(): Promise<{ ok: boolean; body: unknown }> {
+    const res = await bffFetch('/api/auth/verify-email/confirm', { method: 'POST', body: '{}' });
+    return { ok: res.ok, body: res.body };
 }

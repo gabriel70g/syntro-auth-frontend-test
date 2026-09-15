@@ -1,68 +1,33 @@
-import type { LoginResult, OAuthLoginResult } from '@common/domain/auth.domain';
-import type { ApiLoginData, ApiSuccessResponse } from '@common/api/raw/envelope.types';
+import type { LoginResult } from '@common/domain/auth.domain';
 import { mapUnknownToErrorMessage } from '@common/api/mappers/error-message.mapper';
-import { mapAccessTokenPairToAuthSession } from '@common/api/mappers/auth-session.mapper';
 import { isRecord } from '@common/api/mappers/json-guards';
 
-function isApiSuccessEnvelope(body: unknown): body is ApiSuccessResponse<ApiLoginData> {
-    return isRecord(body) && body.success === true && 'data' in body;
-}
-
-function isMfaRequiredData(data: unknown): data is { result: 'mfa_required'; tempToken: string; message: string } {
-    return (
-        isRecord(data) &&
-        data.result === 'mfa_required' &&
-        typeof data.tempToken === 'string' &&
-        typeof data.message === 'string'
-    );
-}
-
-function isLoginSuccessData(data: unknown): data is {
-    accessToken: string;
-    refreshToken?: string | null;
-} {
-    if (!isRecord(data) || typeof data.accessToken !== 'string') return false;
-    const rt = data.refreshToken;
-    return rt === undefined || rt === null || typeof rt === 'string';
-}
-
 /**
- * Why: Traduce cuerpo JSON de login/OAuth login a modelo de dominio (puro).
+ * Why: Traduce la respuesta del BFF a login / login 2FA a modelo de dominio (puro). El BFF ya guardó los tokens
+ * en cookies: la respuesta trae `authenticated` + `role`, o `result: 'mfa_required'`.
  */
 export function mapLoginResponseBodyToResult(httpOk: boolean, body: unknown): LoginResult {
     if (!httpOk) {
         return { success: false, error: mapUnknownToErrorMessage(body, 'Error de red') };
     }
 
-    if (!isApiSuccessEnvelope(body)) {
+    if (!isRecord(body) || body.success !== true || !isRecord(body.data)) {
         return { success: false, error: mapUnknownToErrorMessage(body, 'Respuesta inválida') };
     }
 
     const data = body.data;
 
-    if (isMfaRequiredData(data)) {
+    if (data.result === 'mfa_required') {
         return {
             success: true,
             mfaRequired: true,
-            tempToken: data.tempToken,
-            message: data.message,
+            message: typeof data.message === 'string' ? data.message : undefined,
         };
     }
 
-    if (isLoginSuccessData(data)) {
-        const session = mapAccessTokenPairToAuthSession(
-            data.accessToken,
-            typeof data.refreshToken === 'string' ? data.refreshToken : undefined
-        );
-        if (!session) {
-            return { success: false, error: 'Respuesta del servidor inválida' };
-        }
-        return { success: true, session };
+    if (data.authenticated === true) {
+        return { success: true, session: { role: typeof data.role === 'string' ? data.role : undefined } };
     }
 
     return { success: false, error: 'Respuesta del servidor inválida' };
-}
-
-export function mapOAuthLoginResponseBodyToResult(httpOk: boolean, body: unknown): OAuthLoginResult {
-    return mapLoginResponseBodyToResult(httpOk, body);
 }

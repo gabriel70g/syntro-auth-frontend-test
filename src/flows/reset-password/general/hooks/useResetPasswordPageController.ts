@@ -7,9 +7,9 @@ import { encryptPassword } from '@common/lib/crypto';
 import { validatePassword } from '@common/lib/password-validation';
 
 /**
- * Why: Reset con token del query string; contraseña cifrada como en login.
+ * Why: Reset con el token del correo (lo agrega el BFF desde su cookie); contraseña cifrada como en login.
  */
-export function useResetPasswordPageController(resetToken: string) {
+export function useResetPasswordPageController(hasToken: boolean) {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -21,7 +21,7 @@ export function useResetPasswordPageController(resetToken: string) {
             e.preventDefault();
             setError('');
 
-            if (!resetToken) {
+            if (!hasToken) {
                 setError('El enlace no es válido o ha expirado. Solicita uno nuevo desde “Olvidé mi contraseña”.');
                 return;
             }
@@ -40,7 +40,7 @@ export function useResetPasswordPageController(resetToken: string) {
             setIsLoading(true);
             try {
                 const enc = await encryptPassword(password);
-                const http = await postAuthResetPassword({ token: resetToken, newPassword: enc });
+                const http = await postAuthResetPassword({ newPassword: enc });
                 const outcome = mapResetPasswordResponse(http.ok, http.body);
                 if (outcome.kind === 'error') {
                     setError(outcome.message);
@@ -53,7 +53,7 @@ export function useResetPasswordPageController(resetToken: string) {
                 setIsLoading(false);
             }
         },
-        [resetToken, password, confirmPassword]
+        [hasToken, password, confirmPassword]
     );
 
     return {

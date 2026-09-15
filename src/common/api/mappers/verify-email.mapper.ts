@@ -1,7 +1,9 @@
 import { isRecord } from '@common/api/mappers/json-guards';
 
 export interface VerifyEmailConfirmView {
-    readonly accessToken: string | null;
+    /** El backend auto-loguea al confirmar; el BFF guardó la sesión en cookies. */
+    readonly authenticated: boolean;
+    readonly role: string | undefined;
     readonly twoFactorSecret: string | null;
     readonly twoFactorEnabled: boolean;
 }
@@ -12,14 +14,11 @@ export interface VerifyEmailConfirmView {
 export function mapVerifyEmailConfirmBody(body: unknown): VerifyEmailConfirmView {
     const root = unwrapEnvelopeData(body);
 
-    const accessToken = readString(root, 'accessToken');
-    const twoFactorSecret = readString(root, 'twoFactorSecret');
-    const twoFactorEnabled = readBoolean(root, 'twoFactorEnabled');
-
     return {
-        accessToken,
-        twoFactorSecret,
-        twoFactorEnabled,
+        authenticated: readBoolean(root, 'authenticated'),
+        role: readString(root, 'role') ?? undefined,
+        twoFactorSecret: readString(root, 'twoFactorSecret'),
+        twoFactorEnabled: readBoolean(root, 'twoFactorEnabled'),
     };
 }
 

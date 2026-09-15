@@ -4,12 +4,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { postAuthMfaEnable, postAuthMfaSetup } from '@common/api/clients/mfa.http.client';
 import { mapMfaSetupHttpToOutcome } from '@common/api/mappers/mfa.mapper';
-import { readMfaTempToken } from '@common/lib/storage/auth-session.storage';
 
 type Step = 'loading' | 'qr' | 'success' | 'error';
 
 /**
- * Why: Alta TOTP con JWT temporal (login forzado).
+ * Why: Alta TOTP con JWT temporal (login forzado). El token temporal lo agrega el BFF desde su cookie.
  */
 export function useMfaForcedSetup() {
     const router = useRouter();
@@ -19,20 +18,12 @@ export function useMfaForcedSetup() {
     const [code, setCode] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [tempToken, setTempToken] = useState<string | null>(null);
 
     useEffect(() => {
-        const run = async () => {
-            if (typeof window === 'undefined') return;
-            const token = readMfaTempToken();
-            const auth = localStorage.getItem('auth_token');
-            const usable = token || auth;
-            if (!usable) {
-                router.replace('/login');
-                return;
-            }
-            setTempToken(usable);
-            const { ok, body } = await postAuthMfaSetup(usable);
+        let alive = true;
+        void (async () => {
+            const { ok, body } = await postAuthMfaSetup();
+            if (!alive) return;
             const mapped = mapMfaSetupHttpToOutcome(ok, body);
             if (mapped.success && mapped.setup) {
                 setOtpAuthUri(mapped.setup.qrCodeUri);
@@ -42,15 +33,17 @@ export function useMfaForcedSetup() {
                 setError(mapped.error || 'Error');
                 setStep('error');
             }
+        })();
+        return () => {
+            alive = false;
         };
-        void run();
-    }, [router]);
+    }, []);
 
     const submitEnable = useCallback(async () => {
-        if (!tempToken || code.length !== 6) return;
+        if (code.length !== 6) return;
         setLoading(true);
         setError('');
-        const { ok } = await postAuthMfaEnable(tempToken, code);
+        const { ok } = await postAuthMfaEnable(code);
         setLoading(false);
         if (!ok) {
             setError('Código incorrecto');
@@ -58,7 +51,7 @@ export function useMfaForcedSetup() {
         }
         setStep('success');
         setTimeout(() => router.push('/login/2fa'), 2000);
-    }, [code, tempToken, router]);
+    }, [code, router]);
 
     return {
         step,

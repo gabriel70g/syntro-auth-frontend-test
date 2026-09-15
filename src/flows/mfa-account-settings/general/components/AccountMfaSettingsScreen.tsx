@@ -325,7 +325,7 @@ export function AccountMfaSettingsScreen() {
                         </div>
                         <button
                             type="button"
-                            onClick={() => flow.router.push('/dashboard')}
+                            onClick={() => flow.router.push(flow.homePath)}
                             style={{
                                 width: '100%',
                                 padding: '0.875rem',
@@ -415,7 +415,7 @@ export function AccountMfaSettingsScreen() {
                         </p>
                         <button
                             type="button"
-                            onClick={() => flow.router.push('/dashboard')}
+                            onClick={() => flow.router.push(flow.homePath)}
                             style={{
                                 width: '100%',
                                 padding: '0.875rem',
@@ -506,7 +506,7 @@ export function AccountMfaSettingsScreen() {
 
             <button
                 type="button"
-                onClick={() => flow.router.push('/dashboard')}
+                onClick={() => flow.router.push(flow.homePath)}
                 style={{
                     marginTop: '1.5rem',
                     background: 'transparent',
@@ -516,7 +516,7 @@ export function AccountMfaSettingsScreen() {
                     fontSize: '0.875rem',
                 }}
             >
-                ← Dashboard
+                ← Volver
             </button>
         </div>
     );

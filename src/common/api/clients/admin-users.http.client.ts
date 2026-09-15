@@ -1,13 +1,11 @@
 import { authenticatedFetch } from '@common/api/clients/http.helpers';
-import { extractAccessTokenFromEnvelope } from '@common/api/mappers/auth-session.mapper';
-import { writeAccessToken } from '@common/lib/storage/auth-session.storage';
 import type { AdminUser } from '@common/domain/admin.domain';
 
 /**
- * Why: cliente de la consola de seguridad. Todo pasa por `authenticatedFetch` (Bearer + refresh 401).
+ * Why: cliente de la consola de seguridad. Todo pasa por `authenticatedFetch` (sesión en cookie).
  * Las acciones sensibles (revoke/flags/delete) se ejecutan con el token ELEVADO por step-up 2FA
- * (acr=high): el flujo de step-up reescribe el access token en storage antes de llamar acá, así que
- * estos métodos no reciben el token — usan el vigente (elevado) automáticamente.
+ * (acr=high): al verificar el step-up, el BFF reemplaza el access token de la cookie por el elevado,
+ * así que estos métodos no reciben el token — usan el vigente (elevado) automáticamente.
  */
 
 interface Envelope<T> {
@@ -64,7 +62,7 @@ export async function stepUpChallenge(
     };
 }
 
-/** Verifica el código TOTP. Si OK, guarda el access token ELEVADO (acr=high) para las acciones. */
+/** Verifica el código TOTP. Si OK, el BFF deja el access token ELEVADO (acr=high) en la cookie de sesión. */
 export async function stepUpVerify(
     challengeToken: string,
     code: string,
@@ -73,9 +71,5 @@ export async function stepUpVerify(
         method: 'POST',
         body: JSON.stringify({ challengeToken, factor: 'totp', value: code }),
     });
-    if (res.ok) {
-        const elevated = extractAccessTokenFromEnvelope(res.body);
-        if (elevated) writeAccessToken(elevated);
-    }
     return { ok: res.ok, error: res.ok ? undefined : 'Código inválido o vencido.' };
 }
