@@ -6,10 +6,11 @@
 
 ## Antes de mergear el BFF (lo tiene que hacer el usuario)
 
-- [ ] **Cargar `APP_ORIGIN` en Railway** (servicio `syntro-auth-frontend-test`, entorno `production`) con el origen
-      público del front (`https://syntro-auth-frontend-test-production.up.railway.app`). Sin esa variable, el login con
-      Google falla cerrado (`/login?error=oauth_config`). **Verificado el 2026-09-15 12:10, después del merge de #5:
-      la variable no está en `production` y no hay cambios staged.**
+- [x] **Cargar `APP_ORIGIN` en Railway** (servicio `syntro-auth-frontend-test`, entorno `production`):
+      `https://syntro-auth-frontend-test-production.up.railway.app`, cargada el 2026-09-15 a pedido del usuario.
+      Verificado en producción: `/api/bff/oauth/start` redirige a Google con ese `redirect_uri`, la cookie de `state`
+      es HttpOnly, la CSP suma `upgrade-insecure-requests` y un callback con `state` falso vuelve a
+      `/login?error=oauth_state`.
 - [ ] **Recomendado: `SYNTROAUTH_API_URL`** con el dominio privado del backend (`http://<RAILWAY_PRIVATE_DOMAIN>:<puerto>`).
       Sin ella, el servidor usa la URL pública.
 - [ ] **Puerto:** la imagen escucha en `PORT` (8080 por defecto). Revisar que Railway no tenga fijado el 80 de nginx.
