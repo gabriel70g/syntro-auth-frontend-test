@@ -35,7 +35,9 @@ bff_login(){ # bff_login tenantId email jar → body
 
 say "Entorno: backend AOT con Google OAuth configurado + front BFF"
 docker rm -f "$FC" "$FC-sin-origen" >/dev/null 2>&1 # conectados a la red: sin esto e2e_down no puede borrarla
-e2e_up -e OAUTH_GOOGLE_CLIENT_ID=e2e-client-id -e OAUTH_GOOGLE_CLIENT_SECRET=e2e-client-secret || exit 1
+# La red de Docker hace de red privada de Railway: el backend acepta de ahí la IP y el navegador que reenvía el BFF (M3).
+e2e_up -e OAUTH_GOOGLE_CLIENT_ID=e2e-client-id -e OAUTH_GOOGLE_CLIENT_SECRET=e2e-client-secret \
+  -e ClientIp__TrustedNetworks__0=172.16.0.0/12 || exit 1
 docker run -d --name "$FC" --network "$NET" -p 3000:8080 \
   -e SYNTROAUTH_API_URL="http://$API:8080" -e APP_ORIGIN=http://localhost:3000 syntro-front:bff >/dev/null || exit 1
 for _ in $(seq 1 30); do [ "$(status "$F/health")" = 200 ] && break; sleep 1; done
@@ -119,6 +121,22 @@ check "GET /api/tenants/mine con sesión" 200 "$(status -b "$JAR" -H "X-Tenant-I
 SESSION=$(curl -s -b "$JAR" "$F/api/bff/session")
 check "session devuelve claims sin token" "yes 0" "$(echo "$SESSION" | python3 -c 'import sys,json;d=json.load(sys.stdin)["data"];print("yes" if d.get("sub") else "no",end=" ")')$(echo "$SESSION" | grep -c eyJ)"
 check "con sesión /tenant → 200" 200 "$(status -b "$JAR" "$F/tenant")"
+
+say "IP y navegador del usuario hasta el backend (M3)"
+IP_EMAIL="ip-$(date +%s)@e2e.test"
+IP_TENANT=$(register "IpCo$(date +%s)" "$IP_EMAIL"); verify_all
+IP_JAR=$W/ipjar
+CHROME='Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/126.0.6478.55 Safari/537.36'
+ipcall(){ curl -s "$@" -H "User-Agent: $CHROME" -H "X-Real-IP: 203.0.113.55" -H "X-Forwarded-For: 6.6.6.6"; }
+IP_PASS=$(enc "$E2E_PASSWORD")
+ipcall -o /dev/null -c "$IP_JAR" -b "$IP_JAR" -X POST "$F/api/auth/login" -H "$J" -H "$ORIGIN" -H "$SAME" -H "X-Tenant-Id: $IP_TENANT" \
+  -d "{\"email\":\"$IP_EMAIL\",\"password\":\"$IP_PASS\"}"
+IP_ROW=$(sql "SELECT host(ip_address)||' '||ua_browser FROM syntro_auth.user_sessions WHERE user_id='$(uid "$IP_EMAIL")' ORDER BY created_at DESC LIMIT 1")
+check "la sesión guarda la IP de X-Real-IP (no el X-Forwarded-For del cliente) y el navegador" "203.0.113.55 Chrome" "$IP_ROW"
+sed -i '' '/__Host-sa_at/d' "$IP_JAR"
+check "refresh desde la misma IP → 200" 200 "$(ipcall -o /dev/null -w '%{http_code}' -b "$IP_JAR" -c "$IP_JAR" -H "X-Tenant-Id: $IP_TENANT" "$F/api/tenants/mine")"
+sed -i '' '/__Host-sa_at/d' "$IP_JAR"
+check "refresh desde otra red → sin sesión" 401 "$(curl -s -o /dev/null -w '%{http_code}' -b "$IP_JAR" -H "User-Agent: $CHROME" -H "X-Real-IP: 198.51.100.8" -H "X-Tenant-Id: $IP_TENANT" "$F/api/tenants/mine")"
 
 say "Refresh coordinado: access vencido + 5 pedidos en paralelo"
 OLD_AT=$(jarval "$JAR" __Host-sa_at); OLD_RT=$(jarval "$JAR" __Host-sa_rt)

@@ -49,9 +49,9 @@
 
 ## Gaps
 
-- [ ] **Rate limit y binding ven la IP del servidor de Next.** El BFF reenvía `X-Forwarded-For`, pero el backend no
-      lo usa sin `KnownNetworks` en `ForwardedHeaders` (`syntroAuth/src/SyntroAuth.Api/Program.cs:164-168`). No es
-      nuevo: antes veía la IP del proxy de Railway. Pendiente del backend (M1–M3).
+- [ ] **Rate limit y binding ven la IP del servidor de Next hasta cargar `SYNTROAUTH_API_URL`.** El BFF manda la IP
+      del usuario (de `X-Real-IP`) en `X-Forwarded-For`, y el backend la acepta solo por la red privada (M3, rama
+      `fix/m3-ip-real-at10` de syntroAuth). Falta cargar la variable con `http://syntroauth.railway.internal:<puerto>`.
 - [ ] **Step-up 2FA de la consola de admin sin E2E.** El BFF captura el token elevado (`capture: 'access'` en
       `/api/auth/step-up/verify`), pero `scripts/e2e/bff.sh` no crea un admin global. Verificado en código, no
       ejecutado.
@@ -135,3 +135,7 @@
     con el sistema emulado oscuro, y 6 rutas sin sesión sin errores de render.
   - **Sin verificar en navegador:** las pantallas con sesión.
   - **Copy nuevo:** las etiquetas "Sistema", "Claro" y "Oscuro".
+- 2026-09-19 — **La IP del usuario llega al backend (M3 de syntroAuth).** El BFF reenviaba el `X-Forwarded-For` que le
+  llegaba, y ese header lo escribe el cliente. Ahora manda la IP de `X-Real-IP`, que pone el borde de Railway.
+  El backend la acepta solo por la red privada. Rojo con la imagen de `main` contra el backend nuevo: la sesión guardó
+  `6.6.6.6`, la IP que eligió el cliente. Nuevo escenario en `scripts/e2e/bff.sh`: 77/77.
