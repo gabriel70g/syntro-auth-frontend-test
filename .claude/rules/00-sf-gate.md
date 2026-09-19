@@ -215,9 +215,12 @@ no el dominio público.
 a mano hace que el proxy tire `ERR_INVALID_URL` y responda 500. Verificado con la imagen sin `APP_ORIGIN`: `/tenant` → 500.
 Por eso el proxy usa `NextResponse.redirect` con `appOrigin() ?? req.nextUrl.origin`.
 
-**La IP que ve el backend es la del servidor de Next.** El BFF reenvía `X-Forwarded-For`, pero el backend no la
-usa sin `KnownNetworks` en `ForwardedHeaders` (`syntroAuth/src/SyntroAuth.Api/Program.cs`). Afecta rate limit y
-binding de IP. Ya pasaba antes con el proxy de Railway: fichado como pendiente del backend (M1–M3).
+**La IP del usuario viaja en `X-Forwarded-For`, y solo cuenta por la red privada.** El BFF toma la IP de `X-Real-IP`,
+que pone el borde de Railway, y la manda al backend en `X-Forwarded-For` junto con el navegador en
+`X-Original-User-Agent` (`src/server/backend.ts`). El `X-Forwarded-For` entrante no se reenvía: lo escribe el cliente.
+El backend acepta esos headers solo si el pedido llega por la red privada (`ClientContextMiddleware` en syntroAuth,
+M3). Sin `SYNTROAUTH_API_URL` apuntando a `syntroauth.railway.internal`, el backend ve la IP de salida del BFF para
+todos los usuarios: rate limit compartido y binding atado a esa IP.
 
 **`X-Tenant-Id` sale del navegador.** `getDefaultHeaders()` (`src/common/lib/config.ts`) manda la empresa activa
 de `localStorage` o `DEFAULT_TENANT_ID`; el BFF solo reenvía un UUID válido. El backend da prioridad al tenant del

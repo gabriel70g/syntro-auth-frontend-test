@@ -1,10 +1,12 @@
+import { isIP } from 'node:net';
 import type { NextRequest } from 'next/server';
 import { backendBaseUrl, backendRefreshCookieName, uuidOrNull } from '@server/config';
 
 /**
  * Why: única salida del servidor de Next hacia SyntroAuth (server-to-server, sin CORS ni `Origin`).
- * Reenvía lo que el backend usa para el binding de sesión y la auditoría: User-Agent del navegador
- * (`X-Original-User-Agent`, `AuthEndpoints.cs:199`) y `X-Forwarded-For`.
+ * Reenvía lo que el backend usa para el rate limit, el binding de sesión y la auditoría: el User-Agent del
+ * navegador (`X-Original-User-Agent`) y su IP (`X-Forwarded-For`). El backend los acepta solo si el pedido llega
+ * por la red privada de Railway (`SYNTROAUTH_API_URL`; `ClientContextMiddleware` en syntroAuth).
  */
 
 const TIMEOUT_MS = 15_000;
@@ -18,9 +20,16 @@ export function clientHeaders(req: NextRequest): Record<string, string> {
         out['user-agent'] = ua;
         out['x-original-user-agent'] = ua;
     }
-    const forwardedFor = req.headers.get('x-forwarded-for');
-    if (forwardedFor) out['x-forwarded-for'] = forwardedFor;
+    // La IP la pone el borde de Railway en `X-Real-IP`. El `X-Forwarded-For` entrante no: lo escribe el cliente.
+    const clientIp = singleIp(req.headers.get('x-real-ip'));
+    if (clientIp) out['x-forwarded-for'] = clientIp;
     return out;
+}
+
+/** Una sola IP válida, o null (ausente, varias o basura). */
+function singleIp(value: string | null): string | null {
+    const ip = value?.trim() ?? '';
+    return isIP(ip) ? ip : null;
 }
 
 /** null = el backend no respondió (red, timeout). El que llama decide el código de error. */
