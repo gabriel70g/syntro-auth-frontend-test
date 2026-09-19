@@ -11,8 +11,8 @@
       Verificado en producción: `/api/bff/oauth/start` redirige a Google con ese `redirect_uri`, la cookie de `state`
       es HttpOnly, la CSP suma `upgrade-insecure-requests` y un callback con `state` falso vuelve a
       `/login?error=oauth_state`.
-- [ ] **Recomendado: `SYNTROAUTH_API_URL`** con el dominio privado del backend (`http://<RAILWAY_PRIVATE_DOMAIN>:<puerto>`).
-      Sin ella, el servidor usa la URL pública.
+- [x] **`SYNTROAUTH_API_URL`** = `http://syntroauth.railway.internal:8080` (red privada), cargada el 2026-09-19 a pedido
+      del usuario. Verificado: el backend ve la IP real del usuario a través del BFF.
 - [ ] **Puerto:** la imagen escucha en `PORT` (8080 por defecto). Revisar que Railway no tenga fijado el 80 de nginx.
 - [ ] **Una sola réplica** del servicio del front: el lock del refresh vive en memoria (`src/server/session.ts`).
 - [ ] **Probar en el navegador el login con password, el login con Google y el 2FA.** El E2E los cubre por HTTP
@@ -49,9 +49,6 @@
 
 ## Gaps
 
-- [ ] **Rate limit y binding ven la IP del servidor de Next hasta cargar `SYNTROAUTH_API_URL`.** El BFF manda la IP
-      del usuario (de `X-Real-IP`) en `X-Forwarded-For`, y el backend la acepta solo por la red privada (M3, rama
-      `fix/m3-ip-real-at10` de syntroAuth). Falta cargar la variable con `http://syntroauth.railway.internal:<puerto>`.
 - [ ] **Step-up 2FA de la consola de admin sin E2E.** El BFF captura el token elevado (`capture: 'access'` en
       `/api/auth/step-up/verify`), pero `scripts/e2e/bff.sh` no crea un admin global. Verificado en código, no
       ejecutado.
