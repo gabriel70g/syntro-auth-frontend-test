@@ -155,7 +155,10 @@ cp "$W/jar1" "$JAR"
 SETUP=$(curl -s -b "$JAR" -c "$JAR" -X POST -H "$ORIGIN" -H "$SAME" "$F/api/account/mfa/setup")
 SECRET=$(echo "$SETUP" | field '["data"]["secret"]')
 sleep $((31 - $(date +%s) % 30))
-check "confirm-sync con TOTP" 200 "$(status -b "$JAR" -c "$JAR" -X POST -H "$ORIGIN" -H "$SAME" -H "$J" -d "{\"code\":\"$(totp "$SECRET")\"}" "$F/api/account/mfa/confirm-sync")"
+CONFIRM=$(curl -s -b "$JAR" -c "$JAR" -X POST -H "$ORIGIN" -H "$SAME" -H "$J" -d "{\"code\":\"$(totp "$SECRET")\"}" "$F/api/account/mfa/confirm-sync")
+check "confirm-sync con TOTP" yes "$(echo "$CONFIRM" | grep -q '"success": *true\|"success":true' && echo yes || echo no)"
+RECOVERY=$(echo "$CONFIRM" | python3 -c 'import sys,json; print(json.load(sys.stdin)["data"]["recoveryCodes"][0])' 2>/dev/null)
+check "confirm-sync devuelve códigos de recuperación" yes "$([ -n "$RECOVERY" ] && echo yes || echo no)"
 check "logout BFF → 200" 200 "$(status -b "$JAR" -c "$JAR" -X POST -H "$ORIGIN" -H "$SAME" "$F/api/bff/logout")"
 check "logout borra la cookie de refresh" "" "$(jarval "$JAR" __Host-sa_rt)"
 : > "$W/jar2fa"
@@ -169,6 +172,15 @@ check "login/2fa → authenticated" True "$(echo "$L2FA" | field '["data"].get("
 check "login/2fa sin tokens en la respuesta" 0 "$(echo "$L2FA" | grep -c 'eyJ')"
 check "tras 2FA hay sesión y no queda cookie de 2FA" "yes no" "$([ -n "$(jarval "$W/jar2fa" __Host-sa_rt)" ] && echo yes || echo no) $([ -n "$(jarval "$W/jar2fa" __Host-sa_mfa)" ] && echo yes || echo no)"
 check "código TOTP incorrecto no se reintenta (401 de negocio pasa tal cual)" 401 "$(status -b "$W/jar2fa" -X POST -H "$ORIGIN" -H "$SAME" -H "$J" -d '{"code":"000000"}' "$F/api/account/mfa/verify")"
+
+say "Código de recuperación por el BFF (M13)"
+: > "$W/jarrec"
+bff_login "$TENANT" "$EMAIL" "$W/jarrec" >/dev/null
+REC=$(curl -s -b "$W/jarrec" -c "$W/jarrec" -X POST -H "$ORIGIN" -H "$SAME" -H "$J" -d "{\"code\":\"$RECOVERY\"}" "$F/api/auth/login/2fa")
+check "login/2fa con código de recuperación → authenticated" True "$(echo "$REC" | field '["data"].get("authenticated")')"
+: > "$W/jarrec2"
+bff_login "$TENANT" "$EMAIL" "$W/jarrec2" >/dev/null
+check "el mismo código ya no sirve" 401 "$(status -b "$W/jarrec2" -X POST -H "$ORIGIN" -H "$SAME" -H "$J" -d "{\"code\":\"$RECOVERY\"}" "$F/api/auth/login/2fa")"
 
 say "Sesión revocada → SESSION_EXPIRED"
 cp "$W/jar2fa" "$W/stale"
