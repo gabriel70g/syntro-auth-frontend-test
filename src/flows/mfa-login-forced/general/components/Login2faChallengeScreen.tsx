@@ -50,7 +50,9 @@ export function Login2faChallengeScreen() {
 
                 <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Verificación Segura</h2>
                 <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>
-                    Ingresa el código de 6 dígitos de tu aplicación autenticadora.
+                    {c.usingRecoveryCode
+                        ? 'Ingresá uno de los códigos de recuperación que guardaste al activar la verificación en dos pasos. Cada código sirve una sola vez.'
+                        : 'Ingresa el código de 6 dígitos de tu aplicación autenticadora.'}
                 </p>
 
                 {c.error && (
@@ -72,6 +74,39 @@ export function Login2faChallengeScreen() {
                 )}
 
                 <form onSubmit={c.handleSubmit}>
+                    {c.usingRecoveryCode ? (
+                        <div style={{ marginBottom: '2rem' }}>
+                            <label
+                                htmlFor="recovery-code"
+                                style={{ display: 'block', textAlign: 'left', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--color-text-dim)' }}
+                            >
+                                Código de recuperación
+                            </label>
+                            <input
+                                id="recovery-code"
+                                type="text"
+                                autoFocus
+                                autoComplete="one-time-code"
+                                spellCheck={false}
+                                placeholder="XXXXX-XXXXX"
+                                value={c.recoveryCode}
+                                onChange={(e) => c.setRecoveryCode(e.target.value.toUpperCase())}
+                                disabled={c.isLoading}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.875rem',
+                                    fontSize: '1.125rem',
+                                    letterSpacing: '0.1em',
+                                    textAlign: 'center',
+                                    background: 'var(--color-surface-input)',
+                                    border: '1px solid var(--color-border-soft)',
+                                    borderRadius: '8px',
+                                    color: 'var(--color-text-strong)',
+                                    outline: 'none',
+                                }}
+                            />
+                        </div>
+                    ) : (
                     <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '2rem' }}>
                         {c.code.map((digit, index) => (
                             <input
@@ -100,10 +135,11 @@ export function Login2faChallengeScreen() {
                             />
                         ))}
                     </div>
+                    )}
 
                     <button
                         type="submit"
-                        disabled={c.isLoading || c.code.join('').length < 6}
+                        disabled={c.isLoading || !c.canSubmit}
                         style={{
                             width: '100%',
                             padding: '0.875rem',
@@ -116,6 +152,27 @@ export function Login2faChallengeScreen() {
                         }}
                     >
                         {c.isLoading ? 'Verificando...' : 'Verificar'}
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={c.toggleRecoveryCode}
+                        disabled={c.isLoading}
+                        style={{
+                            width: '100%',
+                            marginTop: '1rem',
+                            padding: '0.5rem',
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--color-action-fg)',
+                            fontSize: '0.875rem',
+                            textDecoration: 'underline',
+                            cursor: c.isLoading ? 'not-allowed' : 'pointer',
+                        }}
+                    >
+                        {c.usingRecoveryCode
+                            ? 'Volver al código de la aplicación'
+                            : '¿Perdiste el acceso a tu aplicación? Usá un código de recuperación'}
                     </button>
                 </form>
             </div>

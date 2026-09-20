@@ -17,10 +17,13 @@ export function useLogin2faChallenge() {
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    // M13: quien perdió el acceso a su app usa uno de los códigos que guardó al activar 2FA.
+    const [usingRecoveryCode, setUsingRecoveryCode] = useState(false);
+    const [recoveryCode, setRecoveryCode] = useState('');
 
     useEffect(() => {
-        inputRefs.current[0]?.focus();
-    }, []);
+        if (!usingRecoveryCode) inputRefs.current[0]?.focus();
+    }, [usingRecoveryCode]);
 
     const verifyCode = useCallback(async (fullCode: string) => {
         setIsLoading(true);
@@ -65,14 +68,28 @@ export function useLogin2faChallenge() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        void verifyCode(code.join(''));
+        void verifyCode(usingRecoveryCode ? recoveryCode.trim().toUpperCase() : code.join(''));
     };
+
+    const toggleRecoveryCode = () => {
+        setError('');
+        setRecoveryCode('');
+        setCode(['', '', '', '', '', '']);
+        setUsingRecoveryCode((v) => !v);
+    };
+
+    const canSubmit = usingRecoveryCode ? recoveryCode.trim().length >= 10 : code.join('').length === 6;
 
     return {
         code,
         inputRefs,
         isLoading,
         error,
+        usingRecoveryCode,
+        recoveryCode,
+        setRecoveryCode,
+        toggleRecoveryCode,
+        canSubmit,
         handleInputChange,
         handleKeyDown,
         handleSubmit,

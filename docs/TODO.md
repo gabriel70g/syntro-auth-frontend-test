@@ -43,9 +43,7 @@
       binario AOT (AT-9/M16); rate limit "5 intentos por IP" falla abierto y puede ser global (M1–M3); "Auditoría"
       vive solo en logs; "clave en KMS/S3" con la privada cacheada en claro en Redis (K5). Sin verificar: SSO
       cross-app y CSP por app. (Desde el BFF, `/dashboard` ya no se sirve sin sesión.)
-- [ ] **Códigos de recuperación de 2FA que no sirven.** `VerifyEmailScreen.tsx` y `AccountMfaSettingsScreen.tsx`
-      los muestran y ofrecen descargarlos; el backend los genera pero no los guarda ni los acepta (M13). Un usuario
-      sin su teléfono queda afuera aunque los haya guardado.
+
 
 ## Gaps
 
@@ -136,3 +134,7 @@
   llegaba, y ese header lo escribe el cliente. Ahora manda la IP de `X-Real-IP`, que pone el borde de Railway.
   El backend la acepta solo por la red privada. Rojo con la imagen de `main` contra el backend nuevo: la sesión guardó
   `6.6.6.6`, la IP que eligió el cliente. Nuevo escenario en `scripts/e2e/bff.sh`: 77/77.
+- 2026-09-20 — **Código de recuperación en el login con 2FA (M13 de syntroAuth).** Debajo de las seis casillas hay un
+  link que cambia a un campo de texto para un código `XXXXX-XXXXX`. Los códigos ahora se guardan hasheados en el
+  backend y valen una sola vez. Escenario nuevo en `scripts/e2e/bff.sh`: 80/80. Copy nuevo: "¿Perdiste el acceso a tu
+  aplicación? Usá un código de recuperación" y "Volver al código de la aplicación".
